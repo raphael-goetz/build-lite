@@ -1,0 +1,7 @@
+name: build-lite
+version: '${version}'
+main: de.raphaelgoetz.buildLite.BuildLite
+api-version: '1.21'
+author: 'Konfuzius'
+website: 'https://raphael-goetz.de'
+description: "A useful Minecraft building tool, that manages the server on which you build."
