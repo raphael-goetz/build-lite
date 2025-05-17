@@ -23,8 +23,8 @@ repositories {
         name = "GitHubPackages"
         url = "https://maven.pkg.github.com/raphael-goetz/astralis"
         credentials {
-            username = project.hasProperty("github_username") ? project.property("github_username") : System.getenv("GITHUB_USERNAME")
-            password = project.hasProperty("github_token") ? project.property("github_token") : System.getenv("GITHUB_PASSWORD")
+            username = project.findProperty("github_username") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("github_token") ?: System.getenv("GITHUB_TOKEN")
         }
     }
 }
