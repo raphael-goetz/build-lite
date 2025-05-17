@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,3 +26,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: :plugin:shadowJar
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

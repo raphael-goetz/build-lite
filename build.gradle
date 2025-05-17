@@ -6,9 +6,6 @@ plugins {
 }
 
 def tagVersion = System.getenv('VERSION')
-def github_username_env = System.getenv("GITHUB_USERNAME")
-def github_password_env = System.getenv("GITHUB_PASSWORD")
-
 group = "de.raphaelgoetz"
 version = tagVersion ?: '0.0.1-SNAPSHOT'
 
@@ -26,8 +23,8 @@ repositories {
         name = "GitHubPackages"
         url = "https://maven.pkg.github.com/raphael-goetz/astralis"
         credentials {
-            username = github_username ?: github_username_env
-            password = github_token ?: github_password_env
+            username = project.hasProperty("github_username") ? project.property("github_username") : System.getenv("GITHUB_USERNAME")
+            password = project.hasProperty("github_token") ? project.property("github_token") : System.getenv("GITHUB_PASSWORD")
         }
     }
 }
