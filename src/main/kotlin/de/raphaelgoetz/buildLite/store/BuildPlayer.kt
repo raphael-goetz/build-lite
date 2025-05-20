@@ -8,7 +8,9 @@ import org.bukkit.event.Cancellable
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
-class BuildPlayer(val player: Player, var isBuilding: Boolean = false, var isDarkMode: Boolean = false, var lastLocation: Location? = null) {
+class BuildPlayer(val player: Player, var isBuilding: Boolean = false,  var lastLocation: Location? = null) {
+
+    var isDarkMode: Boolean = hasActiveNightVision()
 
     fun updateLastLocation(location: Location) {
         lastLocation = location

@@ -7,7 +7,7 @@ import de.raphaelgoetz.buildLite.store.BuildServer
 
 class BuildLite : Astralis() {
     override fun enable() {
-        val server  = BuildServer()
+        val server = BuildServer()
         server.registerCommands()
         server.registerListener()
     }
