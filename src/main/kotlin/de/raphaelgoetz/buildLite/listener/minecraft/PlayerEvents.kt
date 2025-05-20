@@ -91,7 +91,7 @@ fun registerPlayerEvents(server: BuildServer) {
     listen<PlayerSwapHandItemsEvent> { playerSwapHandItemsEvent ->
         playerSwapHandItemsEvent.isCancelled = true
         val player = server.asBuildPlayer(playerSwapHandItemsEvent.player) ?: return@listen
-        player.openMainMenu("gui.main.title", server)
+        player.openMainMenu(server)
     }
 
     listen<PlayerTeleportEvent> { playerTeleportEvent ->

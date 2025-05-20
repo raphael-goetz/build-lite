@@ -58,12 +58,12 @@ fun BuildPlayer.openWorldCategoryMenu(server: BuildServer) {
         )
 
         val close = player.getItemWithURL(
-            Material.BARRIER, DisplayURL.GUI_CLOSE.url, player.locale().getValue("gui.world.item.close.name")
+            Material.BARRIER, DisplayURL.GUI_CLOSE.url, player.locale().getValue("gui.item.main.menu")
         )
 
         setBlockedSlot(InventorySlots.SLOT4ROW6, spawn, onSpawnClick())
         setBlockedSlot(InventorySlots.SLOT5ROW6, create, onCreateWorldClick(server))
-        setBlockedSlot(InventorySlots.SLOT6ROW6, close, onCloseClick())
+        setBlockedSlot(InventorySlots.SLOT6ROW6, close, onCloseClick(this@openWorldCategoryMenu, server))
     }
 }
 
@@ -80,10 +80,9 @@ private fun getCategoryDescription(worlds: MutableList<BuildWorld>): String {
     return description.toString()
 }
 
-private fun onCloseClick(): Consumer<InventoryClickEvent> {
+private fun onCloseClick(player: BuildPlayer, buildServer: BuildServer): Consumer<InventoryClickEvent> {
     return Consumer {
-        val player = (it.whoClicked as Player)
-        player.closeInventory()
+        player.openMainMenu(buildServer)
     }
 }
 

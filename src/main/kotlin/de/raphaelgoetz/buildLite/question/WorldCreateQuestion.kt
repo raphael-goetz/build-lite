@@ -2,8 +2,6 @@ package de.raphaelgoetz.buildLite.question
 
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.unregister
-import de.raphaelgoetz.astralis.items.basicItem
-import de.raphaelgoetz.astralis.items.smartTransItem
 import de.raphaelgoetz.astralis.schedule.doLater
 import de.raphaelgoetz.astralis.schedule.doNow
 import de.raphaelgoetz.astralis.schedule.time.TaskTimeTypes
@@ -14,7 +12,6 @@ import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.sendText
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.text.translation.sendTransText
-import de.raphaelgoetz.astralis.world.createBuildingWorld
 import de.raphaelgoetz.buildLite.store.BuildPlayer
 import de.raphaelgoetz.buildLite.store.BuildServer
 import io.papermc.paper.event.player.AsyncChatEvent
@@ -42,6 +39,7 @@ fun BuildPlayer.askNewWorldCreate(server: BuildServer) {
         if (!isAnswered) return@interrogate_new
         if (event == null) return@interrogate_new
 
+        event.isCancelled = true
         val message = MiniMessage.miniMessage().serialize(event.message())
         val name = message.replace(Regex("\\W"), "")
 

@@ -121,5 +121,3 @@ runs/
 gradle.properties
 ./gradle.properties
 
-./kotlin
-kotlin

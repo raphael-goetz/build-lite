@@ -8,14 +8,18 @@ import de.raphaelgoetz.astralis.ui.data.InventorySlots
 import de.raphaelgoetz.astralis.ui.openTransInventory
 import de.raphaelgoetz.buildLite.store.BuildPlayer
 import de.raphaelgoetz.buildLite.store.BuildServer
+import org.bukkit.DyeColor
 import org.bukkit.Material
+import org.bukkit.block.banner.Pattern
+import org.bukkit.block.banner.PatternType
+import org.bukkit.inventory.meta.BannerMeta
 import org.bukkit.inventory.meta.SkullMeta
 
-fun BuildPlayer.openMainMenu(title: String, buildServer: BuildServer) {
+fun BuildPlayer.openMainMenu(buildServer: BuildServer) {
 
     val player = this.player
 
-    player.openTransInventory(title, "Main-Menu", InventoryRows.ROW1) {
+    player.openTransInventory("gui.main.title", "Main-Menu", InventoryRows.ROW1) {
 
         val worldItem = player.basicSmartTransItem(
             key = "gui.main.item.world.name",
@@ -31,13 +35,27 @@ fun BuildPlayer.openMainMenu(title: String, buildServer: BuildServer) {
             interactionType = InteractionType.DISPLAY_CLICK
         ) { owningPlayer = player }
 
+        val bannerItem = player.smartTransItem<BannerMeta>(
+            key = "gui.main.item.world.name",
+            descriptionKey = "gui.main.item.world.lore",
+            material = Material.GREEN_BANNER,
+            interactionType = InteractionType.DISPLAY_CLICK
+        ) {
+            addPattern(Pattern(DyeColor.BLACK, PatternType.GLOBE))
+        }
+
         this.setBlockedSlot(InventorySlots.SLOT2ROW1, worldItem) {
             this@openMainMenu.openWorldCategoryMenu(buildServer)
         }
 
         this.setBlockedSlot(InventorySlots.SLOT3ROW1, playerItem) {
-            player.openPlayerOverviewMenu()
+            openPlayerOverviewMenu(buildServer)
         }
+
+        this.setBlockedSlot(InventorySlots.SLOT4ROW1, bannerItem) {
+            openBannerCreationMenu(buildServer)
+        }
+
 
         fun setPhysicItems() {
 
