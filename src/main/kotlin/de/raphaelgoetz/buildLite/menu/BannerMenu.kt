@@ -1,8 +1,8 @@
 package de.raphaelgoetz.buildLite.menu
 
-import de.raphaelgoetz.astralis.items.basicItemWithoutMeta
 import de.raphaelgoetz.astralis.items.builder.SmartItem
 import de.raphaelgoetz.astralis.items.data.InteractionType
+import de.raphaelgoetz.astralis.items.smartTransItem
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
@@ -20,6 +20,7 @@ import org.bukkit.Material
 import org.bukkit.block.banner.Pattern
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BannerMeta
+import org.bukkit.inventory.meta.ItemMeta
 
 private val baseBannerItems = bannerColors.map { it.dyedBannerItem }
 private val basePatterns = RegistryAccess.registryAccess().getRegistry(RegistryKey.BANNER_PATTERN)
@@ -35,6 +36,19 @@ private fun ItemStack.checkMaxPatterns(player: BuildPlayer) {
         player.closeInventory()
         player.inventory.addItem(this)
     }
+}
+
+private fun ItemStack.applyPatterns(itemStack: ItemStack): ItemStack {
+    if (itemMeta is BannerMeta && itemStack.itemMeta is BannerMeta) {
+        val currBannerMeta = itemMeta as BannerMeta
+        val nextBannerMeta = itemStack.itemMeta as BannerMeta
+
+        val patterns = nextBannerMeta.patterns
+        currBannerMeta.patterns = patterns
+        itemMeta = currBannerMeta
+    }
+
+    return this
 }
 
 private fun ItemStack.addPattern(pattern: Pattern): ItemStack {
@@ -84,13 +98,17 @@ private fun BuildPlayer.openColorSelector(banner: ItemStack, server: BuildServer
             openMainMenu(server)
         }
 
-        setBlockedSlot(InventorySlots.SLOT6ROW6, SmartItem(banner, InteractionType.SUCCESS)) { event ->
+        val bannerItem = player.smartTransItem<BannerMeta>("gui.banner.item.get", material = banner.type, interactionType = InteractionType.SUCCESS)
+        val newBannerItem = bannerItem.itemStack.applyPatterns(banner)
+
+        setBlockedSlot(InventorySlots.SLOT6ROW6, SmartItem(newBannerItem, InteractionType.SUCCESS)) { event ->
             event.isCancelled = true
             player.closeInventory()
             player.inventory.addItem(banner)
         }
 
-        setBlockedSlot(InventorySlots.SLOT4ROW6, SmartItem(ItemStack(Material.BARRIER), InteractionType.SUCCESS)) { event ->
+        val removeItem = player.smartTransItem<ItemMeta>("gui.banner.item.remove", material = banner.type, interactionType = InteractionType.DISABLED)
+        setBlockedSlot(InventorySlots.SLOT4ROW6, removeItem) { event ->
             event.isCancelled = true
             val item = banner.removeLatestPattern()
             openColorSelector(item, server)
@@ -110,10 +128,10 @@ private fun BuildPlayer.openPatternSelector(dyeColor: DyeColor, banner: ItemStac
     }
 
     player.openTransPageInventory("gui.banner.pattern.title", "Select the next pattern", InventoryRows.ROW6, patterns) {
-        val left = basicItemWithoutMeta(Material.ARROW)
-        val right = basicItemWithoutMeta(Material.ARROW)
-        pageLeft(InventorySlots.SLOT1ROW6, left)
-        pageRight(InventorySlots.SLOT9ROW6, right)
+        val left = player.smartTransItem<ItemMeta>("gui.item.arrow.left" , material = Material.ARROW)
+        val right = player.smartTransItem<ItemMeta>("gui.item.arrow.right" , material = Material.ARROW)
+        pageLeft(InventorySlots.SLOT1ROW6, left.itemStack)
+        pageRight(InventorySlots.SLOT9ROW6, right.itemStack)
 
         val close = player.getItemWithURL(
             Material.BARRIER, DisplayURL.GUI_CLOSE.url, player.locale().getValue("gui.item.main.menu")
@@ -124,13 +142,17 @@ private fun BuildPlayer.openPatternSelector(dyeColor: DyeColor, banner: ItemStac
             openMainMenu(server)
         }
 
-        setBlockedSlot(InventorySlots.SLOT6ROW6, SmartItem(banner, InteractionType.SUCCESS)) { event ->
+        val bannerItem = player.smartTransItem<BannerMeta>("gui.banner.item.get", material = Material.BARRIER, interactionType = InteractionType.SUCCESS)
+        val newBannerItem = bannerItem.itemStack.applyPatterns(banner)
+
+        setBlockedSlot(InventorySlots.SLOT6ROW6, SmartItem(newBannerItem, InteractionType.SUCCESS)) { event ->
             event.isCancelled = true
             player.closeInventory()
             player.inventory.addItem(banner)
         }
 
-        setBlockedSlot(InventorySlots.SLOT4ROW6, SmartItem(ItemStack(Material.BARRIER), InteractionType.SUCCESS)) { event ->
+        val removeItem = player.smartTransItem<ItemMeta>("gui.banner.item.remove", material = Material.BARRIER, interactionType = InteractionType.DISABLED)
+        setBlockedSlot(InventorySlots.SLOT4ROW6, removeItem) { event ->
             event.isCancelled = true
             val item = banner.removeLatestPattern()
             openColorSelector(item, server)

@@ -36,8 +36,8 @@ fun BuildPlayer.openMainMenu(buildServer: BuildServer) {
         ) { owningPlayer = player }
 
         val bannerItem = player.smartTransItem<BannerMeta>(
-            key = "gui.main.item.world.name",
-            descriptionKey = "gui.main.item.world.lore",
+            key = "gui.main.item.banner.name",
+            descriptionKey = "gui.main.item.banner.lore",
             material = Material.GREEN_BANNER,
             interactionType = InteractionType.DISPLAY_CLICK
         ) {
@@ -60,14 +60,16 @@ fun BuildPlayer.openMainMenu(buildServer: BuildServer) {
         fun setPhysicItems() {
 
             val world = buildServer.asBuildWorld(player.world) ?: return
+            val active = world.hasPhysics
             val name =
-                if (world.hasPhysics) "gui.main.item.physics.enable.name" else "gui.main.item.physics.disable.name"
+                if (active) "gui.main.item.physics.enable.name" else "gui.main.item.physics.disable.name"
+            val interactionType = if (active) InteractionType.ENABLED else InteractionType.DISABLED
 
             val item = player.basicSmartTransItem(
                 key = name,
                 descriptionKey = "gui.main.item.physics.lore",
                 material = Material.GRAVEL,
-                interactionType = InteractionType.DISPLAY_CLICK
+                interactionType = interactionType,
             )
 
             this.setBlockedSlot(InventorySlots.SLOT6ROW1, item) {
@@ -77,15 +79,16 @@ fun BuildPlayer.openMainMenu(buildServer: BuildServer) {
         }
 
         fun setBuildItems() {
-
+            val active = this@openMainMenu.isBuilding
             val name =
-                if (this@openMainMenu.isBuilding) "gui.main.item.build.enable.name" else "gui.main.item.build.disable.name"
+                if (active) "gui.main.item.build.enable.name" else "gui.main.item.build.disable.name"
+            val interactionType = if (active) InteractionType.ENABLED else InteractionType.DISABLED
 
             val item = player.basicSmartTransItem(
                 key = name,
                 descriptionKey = "gui.main.item.build.lore",
                 material = Material.DIAMOND_AXE,
-                interactionType = InteractionType.DISPLAY_CLICK
+                interactionType = interactionType,
             )
 
             this.setBlockedSlot(InventorySlots.SLOT7ROW1, item) {
@@ -95,15 +98,17 @@ fun BuildPlayer.openMainMenu(buildServer: BuildServer) {
         }
 
         fun setNightVisionItems() {
+            val active = this@openMainMenu.hasActiveNightVision()
 
             val name =
-                if (this@openMainMenu.hasActiveNightVision()) "gui.main.item.night.enable.name" else "gui.main.item.night.disable.name"
+                if (active) "gui.main.item.night.enable.name" else "gui.main.item.night.disable.name"
+            val interactionType = if (active) InteractionType.ENABLED else InteractionType.DISABLED
 
             val item = player.basicSmartTransItem(
                 key = name,
                 descriptionKey = "gui.main.item.night.lore",
                 material = Material.ENDER_EYE,
-                interactionType = InteractionType.DISPLAY_CLICK
+                interactionType = interactionType
             )
 
             this.setBlockedSlot(InventorySlots.SLOT8ROW1, item) {

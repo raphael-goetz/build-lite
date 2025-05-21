@@ -20,11 +20,11 @@ enum class DisplayURL(val url: String) {
     GUI_CLOSE("https://textures.minecraft.net/texture/e6f1898f1e84805694544944f8b49c7007622a2d9b2bb59a278519a68991ac69"),
 }
 
-fun Player.getItemWithURL(material: Material, url: String, name: String, description: String = ""): SmartItem {
+fun Player.getItemWithURL(material: Material, url: String, name: String, description: String = "", interactionType: InteractionType = InteractionType.DISPLAY_CLICK): SmartItem {
     try {
         val categoryTextureURL = URI.create(url).toURL()
         return createSmartItem<SkullMeta>(
-            name, Material.PLAYER_HEAD, description, interactionType = InteractionType.DISPLAY_CLICK
+            name, Material.PLAYER_HEAD, description, interactionType = interactionType
         ) {
             val newPlayerProfile = Bukkit.createProfile(UUID.randomUUID())
             val playerTextures = newPlayerProfile.textures

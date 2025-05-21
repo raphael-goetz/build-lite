@@ -1,6 +1,7 @@
 package de.raphaelgoetz.buildLite.menu
 
-import de.raphaelgoetz.astralis.items.basicItemWithoutMeta
+import de.raphaelgoetz.astralis.items.smartItemWithoutMeta
+import de.raphaelgoetz.astralis.items.smartTransItem
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
@@ -16,6 +17,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.meta.ItemMeta
 import java.util.function.Consumer
 
 fun BuildPlayer.openWorldCategoryMenu(server: BuildServer) {
@@ -44,10 +46,10 @@ fun BuildPlayer.openWorldCategoryMenu(server: BuildServer) {
         InventorySlots.SLOT1ROW1,
         InventorySlots.SLOT9ROW5
     ) {
-        val left = basicItemWithoutMeta(Material.ARROW)
-        val right = basicItemWithoutMeta(Material.ARROW)
-        pageLeft(InventorySlots.SLOT1ROW6, left)
-        pageRight(InventorySlots.SLOT9ROW6, right)
+        val left = player.smartTransItem<ItemMeta>("gui.item.arrow.left" , material = Material.ARROW)
+        val right = player.smartTransItem<ItemMeta>("gui.item.arrow.right" , material = Material.ARROW)
+        pageLeft(InventorySlots.SLOT1ROW6, left.itemStack)
+        pageRight(InventorySlots.SLOT9ROW6, right.itemStack)
 
         val spawn = player.getItemWithURL(
             Material.RESPAWN_ANCHOR, DisplayURL.GUI_SPAWN.url, player.locale().getValue("gui.world.item.spawn.name")
