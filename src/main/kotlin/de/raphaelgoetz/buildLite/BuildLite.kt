@@ -10,6 +10,10 @@ class BuildLite : Astralis() {
         val server = BuildServer()
         server.registerCommands()
         server.registerListener()
+
+        server.migrateWorlds.forEach {
+            println("migrate $it")
+        }
     }
 }
 

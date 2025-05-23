@@ -5,9 +5,9 @@ import de.raphaelgoetz.astralis.command.AstralisCommand
 import de.raphaelgoetz.astralis.command.registerCommand
 import de.raphaelgoetz.astralis.text.communication.CommunicationType
 import de.raphaelgoetz.astralis.text.translation.sendTransText
-import de.raphaelgoetz.astralis.world.createBuildingWorld
 import de.raphaelgoetz.astralis.world.existingWorlds
 import de.raphaelgoetz.buildLite.menu.openWorldDeleteMenu
+import de.raphaelgoetz.buildLite.record.WorldState
 import de.raphaelgoetz.buildLite.store.BuildServer
 import de.raphaelgoetz.buildLite.store.isWorld
 import io.papermc.paper.command.brigadier.Commands
@@ -16,24 +16,99 @@ import org.bukkit.entity.Player
 fun registerManageWorldCommand(server: BuildServer) {
 
     val createArgument = Commands.literal("create")
-        .then(Commands.argument("world", StringArgumentType.word())
-            .requires { it.sender.hasPermission("betterbuild.manage.create") }
-            .executes { ctx ->
-                val player = ctx.source.sender as? Player ?: return@executes 0
-                val world = StringArgumentType.getString(ctx, "world")
+        .requires { it.sender.hasPermission("betterbuild.manage.create") }
+        .then(
+            Commands.argument("name", StringArgumentType.word())
+                .executes { ctx ->
+                    val player = ctx.source.sender as? Player ?: return@executes 0
+                    val world = StringArgumentType.getString(ctx, "name")
 
-                if (world.isWorld()) {
-                    player.sendTransText("command.world.manage.exists") {
-                        type = CommunicationType.ERROR
+                    val clearedName = world.replace(Regex("\\W"), "")
+                    val clearedGroup = "unknown" // default value
+
+                    if (world.isWorld()) {
+                        player.sendTransText("command.world.manage.exists") {
+                            type = CommunicationType.ERROR
+                        }
+                        return@executes 0
                     }
-                    return@executes 0
-                }
 
-                val clearedText = world.replace(Regex("\\W"), "")
-                server.createWorld(clearedText)
-                1
-            }
+                    server.createWorld(clearedName, clearedGroup)
+                    1
+                }
+                .then(
+                    Commands.argument("group", StringArgumentType.word())
+                        .executes { ctx ->
+                            val player = ctx.source.sender as? Player ?: return@executes 0
+                            val world = StringArgumentType.getString(ctx, "name")
+                            val group = StringArgumentType.getString(ctx, "group")
+
+                            if (world.isWorld()) {
+                                player.sendTransText("command.world.manage.exists") {
+                                    type = CommunicationType.ERROR
+                                }
+                                return@executes 0
+                            }
+
+                            val clearedName = world.replace(Regex("\\W"), "")
+                            val clearedGroup = group.replace(Regex("\\W"), "")
+                            server.createWorld(clearedName, clearedGroup)
+                            1
+                        }
+                )
         )
+
+    val migrateArgument = Commands.literal("migrate")
+        .then(
+            Commands.argument("world", StringArgumentType.word())
+                .suggests { _, builder ->
+                    server.migrateWorlds.forEach { builder.suggest(it.toString()) }
+                    builder.buildFuture()
+                }
+                .then(
+                    Commands.argument("name", StringArgumentType.word())
+                        .then(
+                            Commands.argument("group", StringArgumentType.word())
+                                .then(
+                                    Commands.argument("state", StringArgumentType.word())
+                                        .suggests { _, builder ->
+                                            WorldState.entries.forEach { builder.suggest(it.toString()) }
+                                            builder.buildFuture()
+                                        }
+                                        .executes { ctx ->
+                                            val player = ctx.source.sender as? Player ?: return@executes 0
+                                            val world = StringArgumentType.getString(ctx, "world")
+                                            val name = StringArgumentType.getString(ctx, "name")
+                                            val group = StringArgumentType.getString(ctx, "group")
+                                            val stateStr = StringArgumentType.getString(ctx, "state")
+
+                                            val state = try {
+                                                WorldState.valueOf(stateStr.uppercase())
+                                            } catch (_: IllegalArgumentException) {
+                                                player.sendTransText("command.world.migrate.type.error") {
+                                                    type = CommunicationType.ERROR
+                                                }
+                                                return@executes 0
+                                            }
+
+                                            if (!server.migrateWorlds.contains(world)) {
+                                                player.sendTransText("command.world.manage.exists") {
+                                                    type = CommunicationType.ERROR
+                                                }
+                                                return@executes 0
+                                            }
+
+                                            val clearedName = name.replace(Regex("\\W"), "")
+                                            val clearedGroup = group.replace(Regex("\\W"), "")
+
+                                            server.migrateWorld(world, clearedName, clearedGroup, state)
+                                            1
+                                        }
+                                )
+                        )
+                )
+        )
+
 
     val deleteArgument = Commands.literal("delete")
         .then(Commands.argument("world", StringArgumentType.word())
@@ -74,6 +149,7 @@ fun registerManageWorldCommand(server: BuildServer) {
    val manageCommand = Commands.literal("world")
         .requires { it.sender is Player }
         .then(createArgument)
+        .then(migrateArgument)
         .then(deleteArgument)
         .then(updateSpawnArguemnt)
         .build()

@@ -44,7 +44,7 @@ fun BuildPlayer.askNewWorldCreate(server: BuildServer) {
         val name = message.replace(Regex("\\W"), "")
 
         doNow {
-            server.createWorld(name)
+            server.createWorld(name, "unknown")
 
             player.sendTransText("question.world.create.success") {
                 type = CommunicationType.SUCCESS

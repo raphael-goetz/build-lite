@@ -58,7 +58,7 @@ private fun BuildPlayer.onClick(server: BuildServer, world: BuildWorld): Consume
         player.closeInventory()
 
         if (world.isLoaded()) {
-            val loc = world.loadableWorld.optionalWorld.getOrElse {
+            val loc = world.bukkitWorld.getOrElse {
                 return@Consumer
             }
 
@@ -67,7 +67,7 @@ private fun BuildPlayer.onClick(server: BuildServer, world: BuildWorld): Consume
         }
 
         server.queue(this, world)
-        world.loadableWorld.load()
+        world.load()
     }
 }
 
