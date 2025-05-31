@@ -1,7 +1,9 @@
 package de.raphaelgoetz.buildLite.menu
 
-import de.raphaelgoetz.astralis.items.smartItemWithoutMeta
+import de.raphaelgoetz.astralis.items.builder.SmartLoreBuilder
 import de.raphaelgoetz.astralis.items.smartTransItem
+import de.raphaelgoetz.astralis.text.communication.CommunicationType
+import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
@@ -13,6 +15,7 @@ import de.raphaelgoetz.buildLite.registry.getItemWithURL
 import de.raphaelgoetz.buildLite.store.BuildPlayer
 import de.raphaelgoetz.buildLite.store.BuildServer
 import de.raphaelgoetz.buildLite.store.BuildWorld
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -75,11 +78,41 @@ private fun onClick(server: BuildServer, player: BuildPlayer, worlds: List<Build
     }
 }
 
-private fun getCategoryDescription(worlds: MutableList<BuildWorld>): String {
-    val description = StringBuilder()
-    description.append("Contains: ")
-    for (i in worlds.indices) description.append(worlds[i].name + ", ")
-    return description.toString()
+private fun getCategoryDescription(worlds: MutableList<BuildWorld>): List<Component> {
+    val description = adventureText("| Contains: ") {
+        type = CommunicationType.NONE
+    }
+
+    if (worlds.size > 10) {
+        val slice = worlds.slice(IntRange(0, 10))
+        val res = slice.map {
+            adventureText("| " + it.name) {
+                type = CommunicationType.NONE
+            }
+        }
+
+        val more = adventureText("| and more! ") {
+            type = CommunicationType.NONE
+        }
+
+        val result = mutableListOf<Component>()
+        result.add(description)
+        result.addAll(res)
+        result.add(more)
+
+        return SmartLoreBuilder(result).build()
+    }
+
+    val res = worlds.map {
+        adventureText("| " + it.name) {
+            type = CommunicationType.NONE
+        }
+    }
+
+    val result = mutableListOf<Component>()
+    result.add(description)
+    result.addAll(res)
+    return SmartLoreBuilder(result).build()
 }
 
 private fun onCloseClick(player: BuildPlayer, buildServer: BuildServer): Consumer<InventoryClickEvent> {

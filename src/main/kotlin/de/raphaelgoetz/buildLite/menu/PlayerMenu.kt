@@ -2,7 +2,6 @@ package de.raphaelgoetz.buildLite.menu
 
 import de.raphaelgoetz.astralis.items.createSmartItem
 import de.raphaelgoetz.astralis.items.data.InteractionType
-import de.raphaelgoetz.astralis.items.smartItemWithoutMeta
 import de.raphaelgoetz.astralis.items.smartTransItem
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.ui.builder.SmartClick

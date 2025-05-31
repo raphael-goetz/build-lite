@@ -1,15 +1,23 @@
 package de.raphaelgoetz.buildLite.registry
 
+import com.google.gson.JsonParser
 import de.raphaelgoetz.astralis.items.builder.SmartItem
 import de.raphaelgoetz.astralis.items.createSmartItem
 import de.raphaelgoetz.astralis.items.data.InteractionType
 import de.raphaelgoetz.astralis.items.smartItemWithoutMeta
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.SkullMeta
+import org.bukkit.profile.PlayerProfile
+import java.io.IOException
+import java.io.InputStreamReader
 import java.net.URI
-import java.util.UUID
+import java.net.URISyntaxException
+import java.net.URL
+import java.util.*
+import java.util.logging.Level
 
 enum class DisplayURL(val url: String) {
     ITEM_CATEGORY("https://textures.minecraft.net/texture/56330a4a22ff55871fc8c618e421a37733ac1dcab9c8e1a4bb73ae645a4a4e"),
@@ -33,6 +41,28 @@ fun Player.getItemWithURL(material: Material, url: String, name: String, descrip
             newPlayerProfile.setTextures(playerTextures)
 
             playerProfile = newPlayerProfile
+        }
+    } catch (_: Exception) {
+        this.sendMessage("Player Textures couldn't be loaded, so used normal items instead")
+        return smartItemWithoutMeta(name, material)
+    }
+}
+
+fun Player.getItemWithURL(material: Material, url: String, name: String, lore: List<Component>, interactionType: InteractionType = InteractionType.DISPLAY_CLICK): SmartItem {
+    try {
+        val categoryTextureURL = URI.create(url).toURL()
+        return createSmartItem<SkullMeta>(
+            name, Material.PLAYER_HEAD, interactionType = interactionType
+        ) {
+            val newPlayerProfile = Bukkit.createProfile(UUID.randomUUID())
+            val playerTextures = newPlayerProfile.textures
+
+            playerTextures.skin = categoryTextureURL
+            newPlayerProfile.setTextures(playerTextures)
+
+            playerProfile = newPlayerProfile
+
+            this.lore(lore)
         }
     } catch (_: Exception) {
         this.sendMessage("Player Textures couldn't be loaded, so used normal items instead")

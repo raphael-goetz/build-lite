@@ -36,6 +36,8 @@ dependencies {
     implementation 'org.jetbrains.exposed:exposed-jdbc:0.61.0'
 
     implementation 'com.h2database:h2:2.2.224'
+
+    implementation 'org.apache.commons:commons-compress:1.26.0'
 }
 
 tasks.named("runServer") {

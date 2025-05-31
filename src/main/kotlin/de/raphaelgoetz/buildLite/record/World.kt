@@ -1,7 +1,5 @@
 package de.raphaelgoetz.buildLite.record
 
-import org.bukkit.Bukkit
-import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
@@ -9,6 +7,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.update
 
 object Worlds : Table("worlds") {
     val id = uuid("id").autoGenerate()
@@ -19,23 +18,23 @@ object Worlds : Table("worlds") {
     val state = enumerationByName("state", WORLD_STATE_NAME_COLUMN_LENGTH, WorldState::class)
 
     // Spawn Data
-    val spawnX = float("spawnX")
-    val spawnY = float("spawnY")
-    val spawnZ = float("spawnZ")
+    val spawnX = double("spawnX")
+    val spawnY = double("spawnY")
+    val spawnZ = double("spawnZ")
     val spawnPitch = float("spawnPitch")
     val spawnYaw = float("spawnYaw")
 }
 
 data class WorldRecord(
     val id: UUID,
-    val name: String,
-    val group: String,
-    val state: WorldState,
-    val spawnX: Float,
-    val spawnY: Float,
-    val spawnZ: Float,
-    val spawnPitch: Float,
-    val spawnYaw: Float
+    var name: String,
+    var group: String,
+    var state: WorldState,
+    var spawnX: Double,
+    var spawnY: Double,
+    var spawnZ: Double,
+    var spawnPitch: Float,
+    var spawnYaw: Float
 )
 
 
@@ -48,9 +47,9 @@ fun createWorldRecord(name: String, group: String = "unknown", state: WorldState
             it[Worlds.group] = group
             it[Worlds.state] = state
 
-            it[spawnX] = 0.0f
-            it[spawnY] = 0.0f
-            it[spawnZ] = 0.0f
+            it[spawnX] = 0.0
+            it[spawnY] = 0.0
+            it[spawnZ] = 0.0
             it[spawnPitch] = 0.0f
             it[spawnYaw] = 0.0f
         }
@@ -85,6 +84,49 @@ fun getWorldRecords(): List<WorldRecord> {
             )
         }
     }
+}
+
+fun WorldRecord.updateWorldRecord() {
+    transaction {
+        Worlds.update({ Worlds.id eq this@updateWorldRecord.id }) {
+            it[Worlds.name] = this@updateWorldRecord.name
+            it[Worlds.group] = this@updateWorldRecord.group
+            it[Worlds.state] = this@updateWorldRecord.state
+            it[Worlds.spawnX] = this@updateWorldRecord.spawnX
+            it[Worlds.spawnY] = this@updateWorldRecord.spawnY
+            it[Worlds.spawnZ] = this@updateWorldRecord.spawnZ
+            it[Worlds.spawnPitch] = this@updateWorldRecord.spawnPitch
+            it[Worlds.spawnYaw] = this@updateWorldRecord.spawnYaw
+        }
+    }
+
+    getWorldRecords().forEach {
+        println(it.toString())
+    }
+}
+
+fun WorldRecord.updateStatus(status: WorldState) {
+    state = status
+    updateWorldRecord()
+}
+
+fun WorldRecord.updateGroup(group: String) {
+    this.group = group
+    updateWorldRecord()
+}
+
+fun WorldRecord.updateName(name: String) {
+    this.name = name
+    updateWorldRecord()
+}
+
+fun WorldRecord.updateSpawnLocation(location: org.bukkit.Location) {
+    this.spawnX = location.x
+    this.spawnY = location.y
+    this.spawnZ = location.z
+    this.spawnPitch = location.pitch
+    this.spawnYaw = location.yaw
+    updateWorldRecord()
 }
 
 fun String.isWorldRecord(): Boolean {
