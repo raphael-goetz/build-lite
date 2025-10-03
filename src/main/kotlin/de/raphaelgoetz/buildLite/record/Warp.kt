@@ -3,7 +3,6 @@ package de.raphaelgoetz.buildLite.record
 import de.raphaelgoetz.buildLite.store.BuildPlayer
 import de.raphaelgoetz.buildLite.store.BuildServer
 import de.raphaelgoetz.buildLite.store.BuildWorld
-import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and

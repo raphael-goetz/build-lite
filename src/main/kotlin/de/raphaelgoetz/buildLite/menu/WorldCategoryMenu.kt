@@ -9,7 +9,7 @@ import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
 import de.raphaelgoetz.astralis.ui.data.InventorySlots
 import de.raphaelgoetz.astralis.ui.openTransPageInventory
-import de.raphaelgoetz.buildLite.question.askNewWorldCreate
+import de.raphaelgoetz.buildLite.dialog.openWorldCreationDialog
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
 import de.raphaelgoetz.buildLite.store.BuildPlayer
@@ -49,8 +49,8 @@ fun BuildPlayer.openWorldCategoryMenu(server: BuildServer) {
         InventorySlots.SLOT1ROW1,
         InventorySlots.SLOT9ROW5
     ) {
-        val left = player.smartTransItem<ItemMeta>("gui.item.arrow.left" , material = Material.ARROW)
-        val right = player.smartTransItem<ItemMeta>("gui.item.arrow.right" , material = Material.ARROW)
+        val left = player.smartTransItem<ItemMeta>("gui.item.arrow.left", material = Material.ARROW)
+        val right = player.smartTransItem<ItemMeta>("gui.item.arrow.right", material = Material.ARROW)
         pageLeft(InventorySlots.SLOT1ROW6, left.itemStack)
         pageRight(InventorySlots.SLOT9ROW6, right.itemStack)
 
@@ -131,6 +131,7 @@ private fun onSpawnClick(): Consumer<InventoryClickEvent> {
 
 private fun BuildPlayer.onCreateWorldClick(server: BuildServer): Consumer<InventoryClickEvent> {
     return Consumer {
-        askNewWorldCreate(server)
+        player.closeInventory()
+        openWorldCreationDialog(server)
     }
 }

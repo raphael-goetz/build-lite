@@ -9,6 +9,7 @@ import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.text.translation.sendTransText
 import de.raphaelgoetz.astralis.world.existingWorlds
+import de.raphaelgoetz.astralis.world.generator.VoidGenerator
 import de.raphaelgoetz.buildLite.record.WorldRecord
 import de.raphaelgoetz.buildLite.record.WorldState
 import de.raphaelgoetz.buildLite.record.updateGroup
@@ -82,9 +83,10 @@ class BuildWorld(val meta: WorldRecord) {
 
     fun load() {
         val world = Bukkit.getWorld(worldIdentifier)
-
         if (world == null) {
-            Bukkit.createWorld(WorldCreator(worldIdentifier))
+            val creator = WorldCreator(worldIdentifier)
+            creator.generator(VoidGenerator())
+            Bukkit.createWorld(creator)
         } else {
             this.bukkitWorld = Optional.of(world)
         }

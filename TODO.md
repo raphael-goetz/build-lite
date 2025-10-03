@@ -1,0 +1,6 @@
+- Fix Banner Creator
+- Create Void and Gray 16x16 Pattern Generator --> idee reset generator before loading the world
+- Rename and Delete Commands are missing permissions
+- add warps to main menu
+- add credits to worlds
+- add states to world
