@@ -14,21 +14,15 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
+private const val FIELD_NAME_KEY = "credit_name"
+
 private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Confirm"),
-        Component.text("Click to confirm to create the world."),
-        100,
-        DialogAction.customClick(
+        Component.text("Confirm"), Component.text("Confirm Changes"), 100, DialogAction.customClick(
             { view, _ ->
-                val name = view.getText("player_name") ?: return@customClick
+                val name = view.getText(FIELD_NAME_KEY) ?: return@customClick
                 val offlinePlayer = Bukkit.getOfflinePlayer(name)
-
-                println("Raw Name " + offlinePlayer.name)
-                println("Raw Name " + offlinePlayer.uniqueId)
-
                 actionRemoveCredit(offlinePlayer.uniqueId, recordWorld.uniqueId)
-
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -36,12 +30,12 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
 
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Click to discard the world creation."), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, null
     )
 }
 
 fun Player.createCreditRemoveDialog(recordWorld: RecordWorld): Dialog {
-    val nameInput = DialogInput.text("player_name", Component.text("Name of the Player")).build()
+    val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Players Name")).build()
 
     val base = DialogBase.builder(Component.text("Remove Credit")).inputs(listOf(nameInput)).build()
     val type = DialogType.confirmation(yesAction(recordWorld), noAction())

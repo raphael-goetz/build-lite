@@ -18,17 +18,22 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
+private const val FIELD_BUILD_MODE_KEY = "home_build_mode"
+private const val FIELD_NIGHT_MODE_KEY = "home_night_mode"
+private const val FIELD_PHYSICS_KEY = "home_physics"
+private const val FIELD_SPEED_KEY = "credit_name"
+
 fun Player.showHomeDialog() {
     showDialog(createHomeDialog())
 }
 
 private fun Player.createHomeDialog(): Dialog {
     //Inputs
-    val buildModeInput = createToggleButton("home_build_mode", "Build", true)
-    val nightModeInput = createToggleButton("home_night_mode", "Night Vision", true)
-    val physicsModeInput = createToggleButton("home_physics", "Physics", true)
+    val buildModeInput = createToggleButton(FIELD_BUILD_MODE_KEY, "Build", true)
+    val nightModeInput = createToggleButton(FIELD_NIGHT_MODE_KEY, "Night Vision", true)
+    val physicsModeInput = createToggleButton(FIELD_PHYSICS_KEY, "Physics", true)
     val flySpeedInput = DialogInput.numberRange(
-        "", 200, Component.text("Speed"), "Fly Speed", 0f, 1f, 0.1f, 0.1f
+        FIELD_SPEED_KEY, 200, Component.text("Speed"), "Fly Speed", 0f, 1f, 0.1f, 0.1f
     )
 
     //Actions
@@ -70,7 +75,7 @@ private fun createToggleButton(key: String, label: String, isEnabled: Boolean): 
     val trueOption = SingleOptionDialogInput.OptionEntry.create("${key}_enabled", Component.text("Enabled"), isEnabled)
     val falseOption =
         SingleOptionDialogInput.OptionEntry.create("${key}_disabled", Component.text("Disabled"), !isEnabled)
-    return DialogInput.singleOption("key", Component.text(label), listOf(trueOption, falseOption)).build()
+    return DialogInput.singleOption(key, Component.text(label), listOf(trueOption, falseOption)).build()
 }
 
 private fun Player.createAction(

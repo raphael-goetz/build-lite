@@ -17,19 +17,22 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
+private const val FIELD_NAME_KEY = "home_build_mode"
+private const val FIELD_GROUP_KEY = "home_night_mode"
+private const val FIELD_STATE_KEY = "home_physics"
+private const val FIELD_GENERATOR_KEY = "credit_name"
+
 private fun Player.yesAction(): ActionButton {
     return ActionButton.create(
         Component.text("Confirm"),
-        Component.text("Click to confirm to create the world."),
+        Component.text("Confirm Changes"),
         100,
         DialogAction.customClick(
             { view, _ ->
-                val name = view.getText("world_name")
-                val group = view.getText("world_group")
-                val state = view.getText("state_option")?.toWorldState()
-                val gen = view.getText("world_generator")?.toWorldGenerator()
-
-                sendMessage("Your world is $name & $group & $state & $gen")
+                val name = view.getText(FIELD_NAME_KEY)
+                val group = view.getText(FIELD_GROUP_KEY)
+                val state = view.getText(FIELD_STATE_KEY)?.toWorldState()
+                val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator()
                 actionWorldCreate(name!!, group!!, gen!!, state!!)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
@@ -38,19 +41,19 @@ private fun Player.yesAction(): ActionButton {
 
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Click to discard the world creation."), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, null
     )
 }
 
 private fun Player.createWorldCreationDialog(): Dialog {
-    val nameInput = DialogInput.text("world_name", Component.text("Name")).build()
-    val groupInput = DialogInput.text("world_group", Component.text("Group")).build()
+    val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Name")).build()
+    val groupInput = DialogInput.text(FIELD_GROUP_KEY, Component.text("Group")).build()
 
     val voidOption = SingleOptionDialogInput.OptionEntry.create(WorldGenerator.VOID.asDialogInput(), Component.text("Void"), true)
     val grayOption =
         SingleOptionDialogInput.OptionEntry.create(WorldGenerator.CHESS.asDialogInput(), Component.text("Chessboard"), false)
     val genOption =
-        DialogInput.singleOption("world_generator", Component.text("Generator"), listOf(voidOption, grayOption)).build()
+        DialogInput.singleOption(FIELD_GENERATOR_KEY, Component.text("Generator"), listOf(voidOption, grayOption)).build()
 
     val notStartedOption =
         SingleOptionDialogInput.OptionEntry.create(WorldState.NOT_STARTED.asDialogInput(), Component.text("Not Started"), true)
@@ -63,7 +66,7 @@ private fun Player.createWorldCreationDialog(): Dialog {
     val finishedOption = SingleOptionDialogInput.OptionEntry.create(WorldState.FINISHED.asDialogInput(), Component.text("Finished"), false)
     val archivedOption = SingleOptionDialogInput.OptionEntry.create(WorldState.ARCHIVED.asDialogInput(), Component.text("Archived"), false)
     val stateOptions = DialogInput.singleOption(
-        "state_option", Component.text("State"), listOf(
+        FIELD_STATE_KEY, Component.text("State"), listOf(
             notStartedOption,
             planingOption,
             underConstructionOption,
@@ -73,7 +76,7 @@ private fun Player.createWorldCreationDialog(): Dialog {
         )
     ).build()
 
-    val base = DialogBase.builder(Component.text("Create a new world"))
+    val base = DialogBase.builder(Component.text("Create World"))
         .inputs(listOf(nameInput, groupInput, genOption, stateOptions)).build()
     val type = DialogType.confirmation(yesAction(), noAction())
 

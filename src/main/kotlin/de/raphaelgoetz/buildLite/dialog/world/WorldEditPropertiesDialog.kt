@@ -9,9 +9,7 @@ import de.raphaelgoetz.buildLite.menu.openWorldFolderMenu
 import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
-import io.papermc.paper.registry.data.dialog.DialogInstancesProvider
 import io.papermc.paper.registry.data.dialog.action.DialogAction
-import io.papermc.paper.registry.data.dialog.input.DialogInput
 import io.papermc.paper.registry.data.dialog.type.DialogType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
@@ -20,7 +18,7 @@ import org.bukkit.entity.Player
 private fun Player.exitAction(): ActionButton {
     return ActionButton.create(
         Component.text("Back"),
-        Component.text("Click to confirm to create the world."),
+        Component.text("Open Home Menu"),
         100,
         DialogAction.customClick(
             { _, _ ->
@@ -32,7 +30,7 @@ private fun Player.exitAction(): ActionButton {
 }
 
 private fun Player.createWorldEditPropertyDialog(recordWorld: RecordWorld): Dialog {
-    val base = DialogBase.builder(Component.text("Edit the world")).build()
+    val base = DialogBase.builder(Component.text("Edit World")).build()
     val set = RegistrySet.valueSet(
         RegistryKey.DIALOG, listOf(
             createWorldUpdateDialog(recordWorld),

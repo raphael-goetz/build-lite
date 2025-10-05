@@ -11,15 +11,18 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
+private const val FIELD_NAME_KEY = "warp_name"
+private const val FIELD_IS_PRIVATE_KEY = "warp_private"
+
 private fun Player.yesAction(): ActionButton {
     return ActionButton.create(
         Component.text("Confirm"),
-        Component.text("Click to confirm to create the world."),
+        Component.text("Confirm Changes"),
         100,
         DialogAction.customClick(
             { view, _ ->
-                val name = view.getText("warp_name")
-                val isPrivate = view.getBoolean("warp_private")
+                val name = view.getText(FIELD_NAME_KEY)
+                val isPrivate = view.getBoolean(FIELD_IS_PRIVATE_KEY)
 
                 if (name == null || isPrivate == null) {
                     return@customClick
@@ -33,15 +36,15 @@ private fun Player.yesAction(): ActionButton {
 
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Click to discard the world creation."), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, null
     )
 }
 
 private fun Player.createWarpCreationDialog(): Dialog {
-    val nameInput = DialogInput.text("warp_name", Component.text("Warp Name")).build()
-    val isPrivate = DialogInput.bool("warp_private", Component.text("Is Private")).build()
+    val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Warp Name")).build()
+    val isPrivate = DialogInput.bool(FIELD_IS_PRIVATE_KEY, Component.text("Is Private")).build()
 
-    val base = DialogBase.builder(Component.text("Create a new warp")).inputs(listOf(nameInput, isPrivate)).build()
+    val base = DialogBase.builder(Component.text("Create Warp")).inputs(listOf(nameInput, isPrivate)).build()
     val type = DialogType.confirmation(yesAction(), noAction())
 
     return Dialog.create { factory ->

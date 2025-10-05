@@ -21,6 +21,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
+private const val FIELD_NAME_KEY = "home_build_mode"
+private const val FIELD_GROUP_KEY = "home_night_mode"
+private const val FIELD_STATE_KEY = "home_physics"
+private const val FIELD_GENERATOR_KEY = "credit_name"
+
 private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
         Component.text("Confirm"),
@@ -28,10 +33,10 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
         100,
         DialogAction.customClick(
             { view, _ ->
-                val name = view.getText("world_name")?.sanitiseNameInput()
-                val group = view.getText("world_group")?.sanitiseGroupInput()
-                val state = view.getText("state_option")?.toWorldState()
-                val gen = view.getText("world_generator")?.toWorldGenerator()
+                val name = view.getText(FIELD_NAME_KEY)?.sanitiseNameInput()
+                val group = view.getText(FIELD_GROUP_KEY)?.sanitiseGroupInput()
+                val state = view.getText(FIELD_STATE_KEY)?.toWorldState()
+                val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator()
 
                 actionWorldUpdate(recordWorld, name, group, generator = gen, state = state)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
@@ -46,43 +51,24 @@ private fun Player.noAction(): ActionButton {
 }
 
 fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
-    val nameInput = DialogInput.text("world_name", 256, Component.text("Name"), true, record.name, 255, null)
-    val groupInput = DialogInput.text("world_group", 256, Component.text("Group"), true, record.group, 255, null)
+    val nameInput = DialogInput.text(FIELD_NAME_KEY, 200, Component.text("Name"), true, record.name, 255, null)
+    val groupInput = DialogInput.text("world_group", 200, Component.text("Group"), true, record.group, 255, null)
 
-    val voidOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldGenerator.VOID.asDialogInput(), Component.text("Void"), record.generator == WorldGenerator.VOID
-    )
-
-    val grayOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldGenerator.CHESS.asDialogInput(), Component.text("Chessboard"), record.generator == WorldGenerator.CHESS
-    )
+    val grayOption = WorldGenerator.CHESS.createSingleInput(record)
+    val voidOption = WorldGenerator.VOID.createSingleInput(record)
     val genOption =
-        DialogInput.singleOption("world_generator", Component.text("Generator"), listOf(voidOption, grayOption)).build()
+        DialogInput.singleOption(FIELD_GENERATOR_KEY, Component.text("Generator"), listOf(voidOption, grayOption))
+            .build()
 
-    val notStartedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.NOT_STARTED.asDialogInput(), Component.text("Not Started"), record.state == WorldState.NOT_STARTED
-    )
-    val planingOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.PLANING.asDialogInput(), Component.text("Planing"), record.state == WorldState.PLANING
-    )
-    val underConstructionOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.UNDER_CONSTRUCTION.asDialogInput(),
-        Component.text("Under Construction"),
-        record.state == WorldState.UNDER_CONSTRUCTION
-    )
-    val reviewRequestedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.REVIEW_REQUIRED.asDialogInput(),
-        Component.text("Review Requested"),
-        record.state == WorldState.REVIEW_REQUIRED
-    )
-    val finishedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.FINISHED.asDialogInput(), Component.text("Finished"), record.state == WorldState.FINISHED
-    )
-    val archivedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.ARCHIVED.asDialogInput(), Component.text("Archived"), record.state == WorldState.ARCHIVED
-    )
+    val notStartedOption = WorldState.NOT_STARTED.createSingleInput(record)
+    val planingOption = WorldState.PLANING.createSingleInput(record)
+    val underConstructionOption = WorldState.UNDER_CONSTRUCTION.createSingleInput(record)
+    val reviewRequestedOption = WorldState.REVIEW_REQUIRED.createSingleInput(record)
+    val finishedOption = WorldState.FINISHED.createSingleInput(record)
+    val archivedOption = WorldState.ARCHIVED.createSingleInput(record)
+
     val stateOptions = DialogInput.singleOption(
-        "state_option", Component.text("State"), listOf(
+        FIELD_STATE_KEY, Component.text("State"), listOf(
             notStartedOption,
             planingOption,
             underConstructionOption,
@@ -92,8 +78,9 @@ fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
         )
     ).build()
 
-    val base = DialogBase.builder(Component.text("Edit World"))
-        .inputs(listOf(nameInput, groupInput, genOption, stateOptions)).build()
+    val base =
+        DialogBase.builder(Component.text("Edit World")).inputs(listOf(nameInput, groupInput, genOption, stateOptions))
+            .build()
     val type = DialogType.confirmation(yesAction(record), noAction())
 
     return Dialog.create { factory ->
@@ -103,3 +90,14 @@ fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
     }
 }
 
+private fun WorldState.createSingleInput(record: RecordWorld): SingleOptionDialogInput.OptionEntry {
+    return SingleOptionDialogInput.OptionEntry.create(
+        asDialogInput(), Component.text(text), record.state == this
+    )
+}
+
+private fun WorldGenerator.createSingleInput(record: RecordWorld): SingleOptionDialogInput.OptionEntry {
+    return SingleOptionDialogInput.OptionEntry.create(
+        asDialogInput(), Component.text(text), record.generator == this
+    )
+}
