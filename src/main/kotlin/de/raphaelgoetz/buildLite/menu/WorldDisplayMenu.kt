@@ -5,23 +5,20 @@ import de.raphaelgoetz.astralis.ui.data.InventorySlots
 import de.raphaelgoetz.astralis.ui.openTransPageInventory
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
 import de.raphaelgoetz.buildLite.item.createPageRightItem
-import de.raphaelgoetz.buildLite.item.createPlayerDisplayItem
-import org.bukkit.Bukkit
+import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
+import de.raphaelgoetz.buildLite.world.WorldFolder
 import org.bukkit.entity.Player
 
-fun Player.openPlayerMenu() {
-    val clicks = Bukkit
-        .getOnlinePlayers()
-        .filter { uniqueId != it.uniqueId }
-        .map { createPlayerDisplayItem(it) }
+fun Player.openWorldDisplayMenu(folder: WorldFolder) {
+    val worlds = folder.worlds.map { createWorldDisplayItem(it) }
 
     openTransPageInventory(
-        "gui.player.title",
-        "Players",
-        InventoryRows.ROW6,
-        clicks,
-        InventorySlots.SLOT1ROW1,
-        InventorySlots.SLOT9ROW5
+        key = "menu.world_display.title",
+        fallback = "Worlds",
+        rows = InventoryRows.ROW6,
+        list = worlds,
+        from = InventorySlots.SLOT1ROW1,
+        to = InventorySlots.SLOT9ROW5,
     ) {
         pageLeft(InventorySlots.SLOT1ROW6, createPageLeftItem())
         pageRight(InventorySlots.SLOT9ROW6, createPageRightItem())
