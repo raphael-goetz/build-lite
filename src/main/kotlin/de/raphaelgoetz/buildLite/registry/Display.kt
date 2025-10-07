@@ -41,24 +41,3 @@ fun Player.getItemWithURL(material: Material, url: String, name: String, descrip
     }
 }
 
-fun Player.getItemWithURL(material: Material, url: String, name: String, lore: List<Component>, interactionType: InteractionType = InteractionType.DISPLAY_CLICK): SmartItem {
-    try {
-        val categoryTextureURL = URI.create(url).toURL()
-        return createSmartItem<SkullMeta>(
-            name, Material.PLAYER_HEAD, interactionType = interactionType
-        ) {
-            val newPlayerProfile = Bukkit.createProfile(UUID.randomUUID())
-            val playerTextures = newPlayerProfile.textures
-
-            playerTextures.skin = categoryTextureURL
-            newPlayerProfile.setTextures(playerTextures)
-
-            playerProfile = newPlayerProfile
-
-            this.lore(lore)
-        }
-    } catch (_: Exception) {
-        this.sendMessage("Player Textures couldn't be loaded, so used normal items instead")
-        return smartItemWithoutMeta(name, material)
-    }
-}

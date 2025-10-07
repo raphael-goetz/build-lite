@@ -1,6 +1,6 @@
 package de.raphaelgoetz.buildLite.sql
 
-import de.raphaelgoetz.buildLite.hasWorldEnterPermission
+import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
 import de.raphaelgoetz.buildLite.sql.types.WORLD_GENERATOR_NAME_COLUMN_LENGTH
 import de.raphaelgoetz.buildLite.sql.types.WORLD_STATE_NAME_COLUMN_LENGTH
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
@@ -85,8 +85,6 @@ fun RecordWorld.updateSqlWorld(
     state: WorldState? = null,
     generator: WorldGenerator? = null,
 ): RecordWorld = transaction {
-   //TODO Group does not get updated???
-
     SqlWorld.update({ SqlWorld.uuid eq uniqueId }) { record ->
         name?.let { value -> record[SqlWorld.name] = value }
         group?.let { value -> record[SqlWorld.group] = value }

@@ -8,6 +8,7 @@ import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
 import de.raphaelgoetz.astralis.ui.data.InventorySlots
 import de.raphaelgoetz.astralis.ui.openTransPageInventory
+import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.item.createInactivePageLeftItem
 import de.raphaelgoetz.buildLite.item.createInactivePageRightItem
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
@@ -101,7 +102,7 @@ private class BannerCreationMenu() {
 
             setBlockedSlot(InventorySlots.SLOT5ROW6, close) { event ->
                 event.isCancelled = true
-                player.closeInventory()
+                player.showHomeDialog()
             }
         }
     }

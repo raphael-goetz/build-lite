@@ -10,8 +10,8 @@ import de.raphaelgoetz.astralis.ux.color.Colorization
 import de.raphaelgoetz.buildLite.action.actionWorldFavoriteToggle
 import de.raphaelgoetz.buildLite.cache.CachePlayerProfile
 import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
-import de.raphaelgoetz.buildLite.capitalizeFirst
 import de.raphaelgoetz.buildLite.dialog.world.showWorldEditPropertyDialog
+import de.raphaelgoetz.buildLite.formatting.capitalizeFirst
 import de.raphaelgoetz.buildLite.menu.openWarpMenu
 import de.raphaelgoetz.buildLite.menu.openWorldFolderMenu
 import de.raphaelgoetz.buildLite.registry.DisplayURL

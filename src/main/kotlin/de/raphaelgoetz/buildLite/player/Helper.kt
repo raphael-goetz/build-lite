@@ -1,13 +1,6 @@
-package de.raphaelgoetz.buildLite
+package de.raphaelgoetz.buildLite.player
 
-import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.entity.Player
-
-object BuildServer {
-    val spawnLocation = Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0)
-
-}
 
 fun Player.hasWorldEnterPermission(name: String, group: String): Boolean {
 

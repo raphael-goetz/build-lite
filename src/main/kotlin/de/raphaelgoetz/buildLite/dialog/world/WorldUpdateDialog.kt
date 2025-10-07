@@ -59,7 +59,7 @@ private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
 
 fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
     val nameInput = DialogInput.text(FIELD_NAME_KEY, 200, Component.text("Name"), true, record.name, 255, null)
-    val groupInput = DialogInput.text("world_group", 200, Component.text("Group"), true, record.group, 255, null)
+    val groupInput = DialogInput.text(FIELD_GROUP_KEY, 200, Component.text("Group"), true, record.group, 255, null)
 
     val grayOption = WorldGenerator.CHESS.createSingleInput(record)
     val voidOption = WorldGenerator.VOID.createSingleInput(record)

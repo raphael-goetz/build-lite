@@ -8,9 +8,13 @@ import de.raphaelgoetz.buildLite.sql.SqlPlayerCredit
 import de.raphaelgoetz.buildLite.sql.SqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.SqlPlayerWarp
 import de.raphaelgoetz.buildLite.sql.SqlWorld
+import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+
+val spawnLocation = Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0)
 
 class BuildLite : Astralis() {
     override fun enable() {
@@ -28,8 +32,4 @@ class BuildLite : Astralis() {
         PlayerProfileCache.init()
         registerListener()
     }
-}
-
-fun String.capitalizeFirst(): String = this.lowercase().replaceFirstChar {
-    if (it.isLowerCase()) it.titlecase() else it.toString()
 }

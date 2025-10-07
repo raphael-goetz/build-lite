@@ -6,10 +6,11 @@ import de.raphaelgoetz.astralis.text.communication.CommunicationType
 import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.text.translation.sendTransText
-import de.raphaelgoetz.buildLite.BuildServer.spawnLocation
 import de.raphaelgoetz.buildLite.action.actionUpdateLastLocation
 import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
+import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
+import de.raphaelgoetz.buildLite.spawnLocation
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
 import de.raphaelgoetz.buildLite.world.WorldLoader
@@ -73,8 +74,11 @@ fun registerPlayerEvents() {
     }
 
     listen<PlayerQuitEvent> { event ->
+        //TODO world does not get unloaded
         val player = event.player
         val location = player.location
+
+        println(player.world.players.isEmpty())
         if (player.world.players.isEmpty()) {
             WorldLoader.lazyUnload(world = event.player.world)
         }
@@ -93,7 +97,6 @@ fun registerPlayerEvents() {
 
     listen<PlayerChangedWorldEvent> { event ->
         val lastWorld = event.from
-        println(event.from.players.size)
         if (lastWorld.players.isEmpty()) {
             if (lastWorld.name == "world") return@listen
             WorldLoader.lazyUnload(world = event.from)
@@ -110,21 +113,17 @@ fun registerPlayerEvents() {
     }
 
     listen<PlayerTeleportEvent> { playerTeleportEvent ->
-        //TODO Player tp only with permission
-       // val buildWorld = server.asBuildWorld(playerTeleportEvent.to.world) ?: return@listen
-       // val enterPermission = buildWorld.permissions
-       // val player = playerTeleportEvent.player
-       // val buildPlayer = server.asBuildPlayer(player) ?: return@listen
-       // for (permission in enterPermission) {
-       //     if (player.hasPermission(permission)) {
-       //         buildPlayer.updateLastLocation(playerTeleportEvent.from)
-       //         return@listen
-       //     }
-       // }
-       // player.sendTransText("event.teleport.permission") {
-       //     type = CommunicationType.ERROR
-       // }
-       // player.teleport(playerTeleportEvent.from)
+        val player = playerTeleportEvent.player
+        val targetWorldName = playerTeleportEvent.to.world.name
+
+        //TODO: improve this handling -> async and its separate query
+        for (world in worlds) {
+            if (world.uniqueId.toString() != targetWorldName) continue
+            if (player.hasWorldEnterPermission(world.name, world.group)) continue
+            player.sendMessage("You do not have permission to create this world.")
+            player.teleportAsync(playerTeleportEvent.from)
+            break
+        }
     }
 
     listen<PlayerEggThrowEvent> { event -> event.isHatching = false }

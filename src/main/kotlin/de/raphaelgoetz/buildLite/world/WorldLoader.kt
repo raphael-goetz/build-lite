@@ -3,7 +3,7 @@ package de.raphaelgoetz.buildLite.world
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.unregister
 import de.raphaelgoetz.astralis.schedule.doLater
-import de.raphaelgoetz.buildLite.BuildServer.spawnLocation
+import de.raphaelgoetz.buildLite.spawnLocation
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerCredits
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerFavorite
