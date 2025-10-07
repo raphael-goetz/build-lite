@@ -85,6 +85,8 @@ fun RecordWorld.updateSqlWorld(
     state: WorldState? = null,
     generator: WorldGenerator? = null,
 ): RecordWorld = transaction {
+   //TODO Group does not get updated???
+
     SqlWorld.update({ SqlWorld.uuid eq uniqueId }) { record ->
         name?.let { value -> record[SqlWorld.name] = value }
         group?.let { value -> record[SqlWorld.group] = value }

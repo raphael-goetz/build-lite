@@ -65,3 +65,9 @@ fun Player.getSqlPlayerFavorite(worldUuid: UUID): RecordPlayerFavorite = transac
         record[world_uuid]
     )
 }
+
+fun RecordWorld.deleteSqlPlayerFavorite() = transaction {
+    SqlPlayerFavorite.deleteWhere {
+        (world_uuid eq uniqueId)
+    }
+}

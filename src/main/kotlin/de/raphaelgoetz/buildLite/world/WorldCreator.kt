@@ -18,6 +18,7 @@ object WorldCreator {
         name: String,
         generator: ChunkGenerator,
     ) {
+        println("Creating $name")
         val worldGenerator = WorldCreator(name)
         worldGenerator.environment(World.Environment.NORMAL)
         worldGenerator.generator(generator)

@@ -1,10 +1,18 @@
 package de.raphaelgoetz.buildLite.dialog.home
 
+import de.raphaelgoetz.buildLite.action.actionDisableBuildMode
+import de.raphaelgoetz.buildLite.action.actionDisableNightMode
+import de.raphaelgoetz.buildLite.action.actionEnableBuildMode
+import de.raphaelgoetz.buildLite.action.actionEnableNightMode
+import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.dialog.warp.showWarpCreationDialog
 import de.raphaelgoetz.buildLite.dialog.world.showWorldCreationDialog
+import de.raphaelgoetz.buildLite.menu.openBannerCreationMenu
 import de.raphaelgoetz.buildLite.menu.openPlayerMenu
 import de.raphaelgoetz.buildLite.menu.openWarpMenu
 import de.raphaelgoetz.buildLite.menu.openWorldFolderMenu
+import de.raphaelgoetz.buildLite.menu.openWorldMigrationMenu
+import de.raphaelgoetz.buildLite.world.WorldMigrator
 import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.dialog.DialogResponseView
 import io.papermc.paper.registry.data.dialog.ActionButton
@@ -20,24 +28,24 @@ import org.bukkit.entity.Player
 
 private const val FIELD_BUILD_MODE_KEY = "home_build_mode"
 private const val FIELD_NIGHT_MODE_KEY = "home_night_mode"
-private const val FIELD_PHYSICS_KEY = "home_physics"
-private const val FIELD_SPEED_KEY = "credit_name"
+private const val FIELD_SPEED_KEY = "home_speed"
 
 fun Player.showHomeDialog() {
     showDialog(createHomeDialog())
 }
 
 private fun Player.createHomeDialog(): Dialog {
+    val cachedPlayer = PlayerCache.getOrInit(this)
+
     //Inputs
-    val buildModeInput = createToggleButton(FIELD_BUILD_MODE_KEY, "Build", true)
-    val nightModeInput = createToggleButton(FIELD_NIGHT_MODE_KEY, "Night Vision", true)
-    val physicsModeInput = createToggleButton(FIELD_PHYSICS_KEY, "Physics", true)
+    val buildModeInput = createToggleButton(FIELD_BUILD_MODE_KEY, "Build", cachedPlayer.recordPlayer.buildMode)
+    val nightModeInput = createToggleButton(FIELD_NIGHT_MODE_KEY, "Night Vision", cachedPlayer.recordPlayer.nightMode)
     val flySpeedInput = DialogInput.numberRange(
-        FIELD_SPEED_KEY, 200, Component.text("Speed"), "Fly Speed", 0f, 1f, 0.1f, 0.1f
+        FIELD_SPEED_KEY, 200, Component.text("Speed"), "Fly Speed", 0.1f, 1f, this.flySpeed, 0.1f
     )
 
     //Actions
-    val actions = listOf(
+    val actions = mutableListOf(
         createAction("World Menu", "Click to open the World Menu") { _, _ ->
             openWorldFolderMenu()
         },
@@ -54,14 +62,39 @@ private fun Player.createHomeDialog(): Dialog {
             openPlayerMenu()
         },
         createAction("Banner Menu", "Click to open the Banner Menu") { _, _ ->
-            //TODO
+            openBannerCreationMenu()
         },
     )
 
-    val closeAction = createAction("Close", "This will open the world Menu") { _, _ -> }
+    if (WorldMigrator.detect().isNotEmpty()) {
+        actions.add(createAction("Migrate Worlds", "Click to open the Migration Menu", 200) { _, _ ->
+            openWorldMigrationMenu()
+        })
+    }
 
-    val base = DialogBase.builder(Component.text("Create a new world"))
-        .inputs(listOf(buildModeInput, nightModeInput, physicsModeInput, flySpeedInput)).build()
+    val closeAction = createAction("Close", "This will open the world Menu") { view, _ ->
+        val speed = view.getFloat(FIELD_SPEED_KEY)
+        val nightMode = view.getText(FIELD_NIGHT_MODE_KEY)
+        val buildMode= view.getText(FIELD_BUILD_MODE_KEY)
+
+        speed?.let { value -> this.flySpeed = value  }
+        buildMode?.let { value ->
+            when (value) {
+                "home_build_mode_disabled" -> this.actionDisableBuildMode()
+                "home_build_mode_enabled" -> this.actionEnableBuildMode()
+            }
+        }
+
+        nightMode?.let { value ->
+            when (value) {
+                "home_night_mode_disabled" -> this.actionDisableNightMode()
+                "home_night_mode_enabled" -> this.actionEnableNightMode()
+            }
+        }
+    }
+
+    val base = DialogBase.builder(Component.text("Home Menu"))
+        .inputs(listOf(buildModeInput, nightModeInput, flySpeedInput)).build()
     val type = DialogType.multiAction(actions, closeAction, 2)
 
     return Dialog.create { factory ->
@@ -79,10 +112,10 @@ private fun createToggleButton(key: String, label: String, isEnabled: Boolean): 
 }
 
 private fun Player.createAction(
-    title: String, toolTip: String, consumer: (DialogResponseView, Audience) -> Unit
+    title: String, toolTip: String, width: Int = 100, consumer: (DialogResponseView, Audience) -> Unit
 ): ActionButton {
     return ActionButton.create(
-        Component.text(title), Component.text(toolTip), 100, DialogAction.customClick(
+        Component.text(title), Component.text(toolTip), width, DialogAction.customClick(
             consumer, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )

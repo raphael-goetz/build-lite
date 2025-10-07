@@ -23,7 +23,7 @@ import java.util.UUID
 
 fun Player.createWorldFolderItem(worldFolder: WorldFolder): SmartClick {
     val item = createSmartItem<SkullMeta>(
-        name = "item.world_folder.name",
+        name = worldFolder.group,
         material = Material.PLAYER_HEAD,
         interactionType = InteractionType.DISPLAY_CLICK,
         tagResolver = listOf(Placeholder.parsed("folder", name))
@@ -41,7 +41,7 @@ fun Player.createWorldFolderItem(worldFolder: WorldFolder): SmartClick {
     }
 
     return SmartClick(item) {
-       openWorldDisplayMenu(worldFolder)
+        openWorldDisplayMenu(worldFolder)
     }
 }
 

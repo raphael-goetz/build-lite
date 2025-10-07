@@ -1,6 +1,7 @@
 package de.raphaelgoetz.buildLite.dialog.warp
 
 import de.raphaelgoetz.buildLite.action.actionWarpCreate
+import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
@@ -36,7 +37,10 @@ private fun Player.yesAction(): ActionButton {
 
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Discard Changes"), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, DialogAction.customClick(
+            { _, _ -> showHomeDialog() },
+            ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
+        )
     )
 }
 

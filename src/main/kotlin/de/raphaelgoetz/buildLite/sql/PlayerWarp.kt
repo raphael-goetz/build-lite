@@ -67,7 +67,7 @@ fun RecordPlayerWarp.deleteSqlPlayerWarp() = transaction {
     SqlPlayerWarp.deleteWhere { SqlPlayerWarp.id eq id }
 }
 
-fun LoadableWorld.deleteSqlPlayerWarps() = transaction {
+fun RecordWorld.deleteSqlPlayerWarps() = transaction {
     SqlPlayerWarp.deleteWhere { SqlPlayerWarp.worldUUID eq uniqueId }
 }
 

@@ -100,5 +100,15 @@ fun Player.getSqlPlayer(): RecordPlayer = transaction {
             }
         }
     )
+}
 
+fun RecordWorld.deleteSqlPlayerLocation() = transaction {
+    SqlPlayer.update({ SqlPlayer.locationWorld eq uniqueId }) {
+        it[SqlPlayer.locationWorld] = null
+        it[SqlPlayer.locationX] = null
+        it[SqlPlayer.locationY] = null
+        it[SqlPlayer.locationZ] = null
+        it[SqlPlayer.locationPitch] = null
+        it[SqlPlayer.locationYaw] = null
+    }
 }

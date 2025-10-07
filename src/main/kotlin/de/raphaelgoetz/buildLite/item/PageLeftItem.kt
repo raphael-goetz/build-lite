@@ -9,3 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta
 fun Player.createPageLeftItem(): ItemStack {
     return smartTransItem<ItemMeta>("gui.item.arrow.left", material = Material.ARROW).itemStack
 }
+
+fun Player.createInactivePageLeftItem(): ItemStack {
+    return smartTransItem<ItemMeta>("gui.item.arrow.left", material = Material.GRAY_DYE).itemStack
+}

@@ -51,7 +51,7 @@ fun LoadableWorld.getSqlPlayerCredits(): List<RecordPlayerCredit> = transaction 
         }
 }
 
-fun LoadableWorld.deleteSqlPlayerCredits() = transaction {
+fun RecordWorld.deleteSqlPlayerCredits() = transaction {
     SqlPlayerCredit.deleteWhere { SqlPlayerCredit.worldUUID eq uniqueId }
 }
 

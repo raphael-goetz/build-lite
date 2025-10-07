@@ -6,7 +6,6 @@ import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.createSqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.createSqlWorld
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerFavorite
-import de.raphaelgoetz.buildLite.sql.deleteSqlWorld
 import de.raphaelgoetz.buildLite.sql.hasSqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.sql.types.WorldState
@@ -14,6 +13,8 @@ import de.raphaelgoetz.buildLite.sql.types.toGenerator
 import de.raphaelgoetz.buildLite.sql.updateSqlWorld
 import de.raphaelgoetz.buildLite.world.LoadableLocation
 import de.raphaelgoetz.buildLite.world.WorldCreator
+import de.raphaelgoetz.buildLite.world.WorldLoader
+import de.raphaelgoetz.buildLite.world.WorldMigrator
 import org.bukkit.entity.Player
 import java.util.UUID
 
@@ -30,13 +31,26 @@ fun Player.actionWorldCreate(name: String, group: String, generator: WorldGenera
     WorldCreator.create(record.uniqueId.toString(), record.generator.toGenerator())
 }
 
+fun Player.actionWorldMigrate(migrateWorld: String, name: String, group: String, generator: WorldGenerator, state: WorldState) {
+    if (!hasPermission("build-lite.world.migrate") || !hasPermission("build-lite.*")) {
+        sendMessage("You do not have permission to create this world.")
+        return
+    }
+
+    val correctName = name.sanitiseNameInput()
+    val correctGroup = group.sanitiseGroupInput()
+
+    val record = createSqlWorld(correctName, correctGroup, generator, state)
+    WorldMigrator.migrate(migrateWorld, record.uniqueId, record.generator.toGenerator())
+}
+
 fun Player.actionWorldDelete(world: RecordWorld) {
     if (!hasPermission("build-lite.world.delete") || !hasPermission("build-lite.*")) {
         sendMessage("You do not have permission to create this world.")
         return
     }
 
-    world.deleteSqlWorld()
+    WorldLoader.lazyDelete(world)
 }
 
 fun Player.actionWorldUpdate(

@@ -1,6 +1,5 @@
 package de.raphaelgoetz.buildLite.item
 
-import com.google.gson.JsonParser
 import de.raphaelgoetz.astralis.items.builder.SmartLoreBuilder
 import de.raphaelgoetz.astralis.items.createSmartItem
 import de.raphaelgoetz.astralis.items.data.InteractionType
@@ -9,9 +8,12 @@ import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ux.color.Colorization
 import de.raphaelgoetz.buildLite.action.actionWorldFavoriteToggle
+import de.raphaelgoetz.buildLite.cache.CachePlayerProfile
+import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
 import de.raphaelgoetz.buildLite.capitalizeFirst
 import de.raphaelgoetz.buildLite.dialog.world.showWorldEditPropertyDialog
 import de.raphaelgoetz.buildLite.menu.openWarpMenu
+import de.raphaelgoetz.buildLite.menu.openWorldFolderMenu
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.sql.RecordPlayerCredit
 import de.raphaelgoetz.buildLite.sql.RecordWorld
@@ -19,7 +21,6 @@ import de.raphaelgoetz.buildLite.sql.getSqlPlayerCredits
 import de.raphaelgoetz.buildLite.sql.hasSqlPlayerFavorite
 import de.raphaelgoetz.buildLite.world.LoadableWorld
 import de.raphaelgoetz.buildLite.world.WorldLoader
-import io.papermc.paper.registry.data.dialog.body.DialogBody
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.`object`.ObjectContents
 import net.kyori.adventure.text.`object`.PlayerHeadObjectContents
@@ -27,9 +28,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.SkullMeta
-import java.net.HttpURLConnection
 import java.net.URI
-import java.net.URL
 import java.util.*
 
 fun Player.createWorldDisplayItem(recordWorld: RecordWorld): SmartClick {
@@ -42,7 +41,6 @@ fun Player.createWorldDisplayItem(recordWorld: RecordWorld): SmartClick {
         name = name,
         material = Material.PLAYER_HEAD,
         interactionType = InteractionType.DISPLAY_CLICK,
-        //tagResolver = listOf(Placeholder.parsed("name", name))
     ) {
         val newPlayerProfile = Bukkit.createProfile(UUID.randomUUID())
         val playerTextures = newPlayerProfile.textures
@@ -66,7 +64,7 @@ fun Player.createWorldDisplayItem(recordWorld: RecordWorld): SmartClick {
 
         if (click.isShiftClick && click.isRightClick) {
             actionWorldFavoriteToggle(recordWorld.uniqueId)
-            //TODO Refresh GUI
+            openWorldFolderMenu()
             return@SmartClick
         }
 
@@ -86,9 +84,10 @@ fun Player.createWorldDisplayItem(recordWorld: RecordWorld): SmartClick {
 private fun getDescription(
     recordWorld: RecordWorld, credits: List<RecordPlayerCredit>, isFavorite: Boolean
 ): List<Component> {
+    val profile = PlayerProfileCache.getOrFetch(recordWorld.creatorUuid)
     val firstSection =
         mutableListOf("Status: ${recordWorld.state.text}".gray(), Component.text(" "), "Created by: ".gray().append {
-            createPlayerHead(uuid = recordWorld.creatorUuid).append {
+            createPlayerHead(profile).append {
                 adventureText(" ${Bukkit.getOfflinePlayer(recordWorld.creatorUuid).name}") {
                     bold(true)
                     color = Colorization.LIME
@@ -110,11 +109,12 @@ private fun getDescription(
         middleSection.add(Component.text(" "))
         middleSection.add("Credits:".gray())
         credits.forEachIndexed { index, item ->
-            val name = " ${getUsernameFromUUID(item.playerUuid)}"
+            val profile = PlayerProfileCache.getOrFetch(item.playerUuid)
+            val name = " ${profile.playerName}"
             val prefix = if (index == credits.lastIndex) "└ " else "├ "
             middleSection.add(
                 prefix.gray().append {
-                    createPlayerHead(item.playerUuid).append {
+                    createPlayerHead(profile).append {
                         name.gray()
                     }
                 })
@@ -137,20 +137,18 @@ private fun getDescription(
 }
 
 fun String.gray(): Component = adventureText(this) {
-    color = Colorization.GRAY
+    color = Colorization.LIGHT_GRAY
     renderMode = RenderMode.LORE
 }
 
-fun createPlayerHead(uuid: UUID, hat: Boolean = true): Component {
-    val offlinePlayer = Bukkit.getOfflinePlayer(uuid)
-    val profile = offlinePlayer.playerProfile.update().join()
+fun createPlayerHead(profile: CachePlayerProfile, hat: Boolean = true): Component {
     val headBuilder = ObjectContents.playerHead().apply {
-        id(profile.id)
-        name(profile.name)
+        id(profile.playerUUID)
+        name(profile.playerName)
         hat(hat)
 
         // Add textures if available
-        profile.properties.forEach { prop ->
+        profile.playerProfile.properties.forEach { prop ->
             profileProperty(
                 PlayerHeadObjectContents.property(prop.name, prop.value, prop.signature)
             )
@@ -158,18 +156,4 @@ fun createPlayerHead(uuid: UUID, hat: Boolean = true): Component {
     }.build()
 
     return Component.`object`().contents(headBuilder).build()
-}
-
-fun getUsernameFromUUID(uuid: UUID): String? {
-    val url = URL("https://sessionserver.mojang.com/session/minecraft/profile/${uuid.toString().replace("-", "")}")
-    val connection = url.openConnection() as HttpURLConnection
-    connection.requestMethod = "GET"
-    connection.connectTimeout = 5000
-    connection.readTimeout = 5000
-
-    if (connection.responseCode != 200) return null
-
-    val json = connection.inputStream.bufferedReader().use { it.readText() }
-    val element = JsonParser.parseString(json).asJsonObject
-    return element["name"].asString
 }

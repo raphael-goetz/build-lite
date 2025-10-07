@@ -21,10 +21,10 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
-private const val FIELD_NAME_KEY = "home_build_mode"
-private const val FIELD_GROUP_KEY = "home_night_mode"
-private const val FIELD_STATE_KEY = "home_physics"
-private const val FIELD_GENERATOR_KEY = "credit_name"
+private const val FIELD_NAME_KEY = "update_name"
+private const val FIELD_GROUP_KEY = "update_group"
+private const val FIELD_STATE_KEY = "update_state"
+private const val FIELD_GENERATOR_KEY = "update_generator"
 
 private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
@@ -38,15 +38,22 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
                 val state = view.getText(FIELD_STATE_KEY)?.toWorldState()
                 val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator()
 
+                if (name == null || group == null || state == null || gen == null) {
+                    return@customClick
+                }
+
                 actionWorldUpdate(recordWorld, name, group, generator = gen, state = state)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
 }
 
-private fun Player.noAction(): ActionButton {
+private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Click to discard the world creation."), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, DialogAction.customClick(
+            { _, _ -> showWorldEditPropertyDialog(recordWorld) },
+            ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
+        )
     )
 }
 
@@ -81,7 +88,7 @@ fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
     val base =
         DialogBase.builder(Component.text("Edit World")).inputs(listOf(nameInput, groupInput, genOption, stateOptions))
             .build()
-    val type = DialogType.confirmation(yesAction(record), noAction())
+    val type = DialogType.confirmation(yesAction(record), noAction(record))
 
     return Dialog.create { factory ->
         val builder = factory.empty()

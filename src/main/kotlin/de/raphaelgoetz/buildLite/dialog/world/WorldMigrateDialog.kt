@@ -1,6 +1,6 @@
 package de.raphaelgoetz.buildLite.dialog.world
 
-import de.raphaelgoetz.buildLite.action.actionWorldCreate
+import de.raphaelgoetz.buildLite.action.actionWorldMigrate
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.sql.types.WorldState
@@ -18,12 +18,12 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
-private const val FIELD_NAME_KEY = "create_name"
-private const val FIELD_GROUP_KEY = "create_group"
-private const val FIELD_STATE_KEY = "create_state"
-private const val FIELD_GENERATOR_KEY = "create_generator"
+private const val FIELD_NAME_KEY = "migrate_name"
+private const val FIELD_GROUP_KEY = "migrate_group"
+private const val FIELD_STATE_KEY = "migrate_state"
+private const val FIELD_GENERATOR_KEY = "migrate_generator"
 
-private fun Player.yesAction(): ActionButton {
+private fun Player.yesAction(initialName: String): ActionButton {
     return ActionButton.create(
         Component.text("Confirm"), Component.text("Confirm Changes"), 100, DialogAction.customClick(
             { view, _ ->
@@ -36,7 +36,7 @@ private fun Player.yesAction(): ActionButton {
                     return@customClick
                 }
 
-                actionWorldCreate(name, group, gen, state)
+                actionWorldMigrate(initialName, name, group, gen, state)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -51,7 +51,7 @@ private fun Player.noAction(): ActionButton {
     )
 }
 
-private fun Player.createWorldCreationDialog(): Dialog {
+private fun Player.createWorldMigrationDialog(initialName: String): Dialog {
     val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Name")).build()
     val groupInput = DialogInput.text(FIELD_GROUP_KEY, Component.text("Group")).build()
 
@@ -94,7 +94,7 @@ private fun Player.createWorldCreationDialog(): Dialog {
 
     val base = DialogBase.builder(Component.text("Create World"))
         .inputs(listOf(nameInput, groupInput, genOption, stateOptions)).build()
-    val type = DialogType.confirmation(yesAction(), noAction())
+    val type = DialogType.confirmation(yesAction(initialName = initialName), noAction())
 
     return Dialog.create { factory ->
         val builder = factory.empty()
@@ -103,8 +103,8 @@ private fun Player.createWorldCreationDialog(): Dialog {
     }
 }
 
-fun Player.showWorldCreationDialog() {
+fun Player.showWorldMigrationDialog(initialName: String) {
     closeDialog()
     closeInventory()
-    showDialog(createWorldCreationDialog())
+    showDialog(createWorldMigrationDialog(initialName))
 }

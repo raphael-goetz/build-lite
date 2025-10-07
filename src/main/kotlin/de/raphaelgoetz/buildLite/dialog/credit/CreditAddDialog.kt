@@ -1,6 +1,7 @@
 package de.raphaelgoetz.buildLite.dialog.credit
 
 import de.raphaelgoetz.buildLite.action.actionAddCredit
+import de.raphaelgoetz.buildLite.dialog.world.showWorldEditPropertyDialog
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import org.bukkit.Bukkit
 
@@ -31,9 +32,12 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
     )
 }
 
-private fun Player.noAction(): ActionButton {
+private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Discard Changes"), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, DialogAction.customClick(
+            { _, _ -> showWorldEditPropertyDialog(recordWorld) },
+            ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
+        )
     )
 }
 
@@ -42,7 +46,7 @@ fun Player.createCreditAddDialog(recordWorld: RecordWorld): Dialog {
 
     val base = DialogBase.builder(Component.text("Add Credit"))
         .inputs(listOf(nameInput)).build()
-    val type = DialogType.confirmation(yesAction(recordWorld), noAction())
+    val type = DialogType.confirmation(yesAction(recordWorld), noAction(recordWorld))
 
     return Dialog.create { factory ->
         val builder = factory.empty()

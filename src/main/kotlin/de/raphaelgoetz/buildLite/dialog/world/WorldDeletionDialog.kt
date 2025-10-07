@@ -13,10 +13,7 @@ import org.bukkit.entity.Player
 
 private fun Player.yesAction(record: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Confirm"),
-        Component.text("Confirm Changes"),
-        100,
-        DialogAction.customClick(
+        Component.text("Confirm"), Component.text("Confirm Changes"), 100, DialogAction.customClick(
             { _, _ ->
                 actionWorldDelete(record)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
@@ -24,14 +21,18 @@ private fun Player.yesAction(record: RecordWorld): ActionButton {
     )
 }
 
-private fun Player.noAction(): ActionButton {
+
+private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Discard Changes"), 100, null
+        Component.text("Discard"), Component.text("Discard Changes"), 100, DialogAction.customClick(
+            { _, _ -> showWorldEditPropertyDialog(recordWorld) },
+            ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
+        )
     )
 }
 
 fun Player.createWorldDeletionDialog(record: RecordWorld): Dialog {
-    val type = DialogType.confirmation(yesAction(record), noAction())
+    val type = DialogType.confirmation(yesAction(record), noAction(record))
     val base = DialogBase.builder(Component.text("Delete World")).build()
     return Dialog.create { factory ->
         val builder = factory.empty()

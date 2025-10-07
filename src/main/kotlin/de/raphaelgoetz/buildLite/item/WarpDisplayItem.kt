@@ -7,7 +7,6 @@ import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.buildLite.dialog.warp.showWarpDeletionDialog
 import de.raphaelgoetz.buildLite.sql.RecordPlayerWarp
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
-import de.raphaelgoetz.buildLite.world.LoadableWorld
 import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
 import de.raphaelgoetz.buildLite.world.WorldLoader
 import net.kyori.adventure.text.Component
@@ -16,7 +15,6 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.ItemMeta
 
 fun Player.createWarpDisplayItem(recordPlayerWarp: RecordPlayerWarp): SmartClick {
-    val loadableWorld = LoadableWorld(recordPlayerWarp.worldUuid)
     val material = if (recordPlayerWarp.isPrivate) Material.ENDER_EYE else Material.ENDER_PEARL
 
     val item = createSmartItem<ItemMeta>(
