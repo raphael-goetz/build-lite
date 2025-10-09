@@ -1,21 +1,29 @@
 package de.raphaelgoetz.buildLite.listener
 
+import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.listener.minecraft.registerBlockEvents
 import de.raphaelgoetz.buildLite.listener.minecraft.registerEntityEvents
 import de.raphaelgoetz.buildLite.listener.minecraft.registerHangingEvents
 import de.raphaelgoetz.buildLite.listener.minecraft.registerPlayerEvents
 import de.raphaelgoetz.buildLite.listener.minecraft.registerRaidEvents
 import de.raphaelgoetz.buildLite.listener.minecraft.registerVehicleEvents
-import de.raphaelgoetz.buildLite.listener.minecraft.registerWorldEvents
-import de.raphaelgoetz.buildLite.store.BuildServer
+import org.bukkit.entity.Player
+import org.bukkit.event.Cancellable
 
-fun BuildServer.registerListener() {
-
-    registerBlockEvents(this)
+fun registerListener() {
+    registerBlockEvents()
     registerEntityEvents()
-    registerHangingEvents(this)
-    registerPlayerEvents(this)
+    registerHangingEvents()
+    registerPlayerEvents()
     registerRaidEvents()
     registerVehicleEvents()
-    registerWorldEvents(this)
+}
+
+fun Player.cancelWhenBuilder(event: Cancellable) {
+    val cache = PlayerCache.getOrInit(this)
+    if (cache.recordPlayer.buildMode) {
+        return
+    }
+
+    event.isCancelled = true
 }

@@ -9,28 +9,30 @@ import de.raphaelgoetz.buildLite.item.createInactivePageLeftItem
 import de.raphaelgoetz.buildLite.item.createInactivePageRightItem
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
 import de.raphaelgoetz.buildLite.item.createPageRightItem
-import de.raphaelgoetz.buildLite.item.createPlayerDisplayItem
+import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
+import de.raphaelgoetz.buildLite.item.createWorldFolderItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
-import org.bukkit.Bukkit
+import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedFavoriteWorlds
+import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedWorlds
 import org.bukkit.Material
+
 import org.bukkit.entity.Player
 
-fun Player.openPlayerMenu() {
+fun Player.openWorldFolderMenu() {
     closeDialog()
-    val clicks = Bukkit
-        .getOnlinePlayers()
-        .filter { uniqueId != it.uniqueId }
-        .map { createPlayerDisplayItem(it) }
+    val favorites = getPermittedFavoriteWorlds().map { createWorldDisplayItem(it) }
+    val folders = getPermittedWorlds().map { createWorldFolderItem(it) }
+    val clicks = favorites + folders
 
     openTransPageInventory(
-        "gui.player.title",
-        "Players",
-        InventoryRows.ROW6,
-        clicks,
-        InventorySlots.SLOT1ROW1,
-        InventorySlots.SLOT9ROW5
-    ) {
+        key = "menu.world_folder.title",
+        fallback = "World Folders",
+        rows = InventoryRows.ROW6,
+        list = clicks,
+        from = InventorySlots.SLOT1ROW1,
+        to = InventorySlots.SLOT9ROW5,
+    )  {
         pageLeft(InventorySlots.SLOT1ROW6, createPageLeftItem(), createInactivePageLeftItem())
         pageRight(InventorySlots.SLOT9ROW6, createPageRightItem(), createInactivePageRightItem())
 

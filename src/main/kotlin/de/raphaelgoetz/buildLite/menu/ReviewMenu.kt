@@ -9,27 +9,27 @@ import de.raphaelgoetz.buildLite.item.createInactivePageLeftItem
 import de.raphaelgoetz.buildLite.item.createInactivePageRightItem
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
 import de.raphaelgoetz.buildLite.item.createPageRightItem
-import de.raphaelgoetz.buildLite.item.createPlayerDisplayItem
+import de.raphaelgoetz.buildLite.item.createReviewDisplayItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
-import org.bukkit.Bukkit
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerReviews
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import java.util.UUID
 
-fun Player.openPlayerMenu() {
+fun Player.openReviewMenu(worldUUID: UUID) {
     closeDialog()
-    val clicks = Bukkit
-        .getOnlinePlayers()
-        .filter { uniqueId != it.uniqueId }
-        .map { createPlayerDisplayItem(it) }
+    val clicks = getSqlPlayerReviews(worldUUID).map {
+        createReviewDisplayItem(it)
+    }
 
     openTransPageInventory(
-        "gui.player.title",
-        "Players",
-        InventoryRows.ROW6,
-        clicks,
-        InventorySlots.SLOT1ROW1,
-        InventorySlots.SLOT9ROW5
+        key = "",
+        fallback = "Reviews",
+        rows = InventoryRows.ROW6,
+        list = clicks,
+        from = InventorySlots.SLOT1ROW1,
+        to = InventorySlots.SLOT9ROW5
     ) {
         pageLeft(InventorySlots.SLOT1ROW6, createPageLeftItem(), createInactivePageLeftItem())
         pageRight(InventorySlots.SLOT9ROW6, createPageRightItem(), createInactivePageRightItem())
@@ -37,12 +37,12 @@ fun Player.openPlayerMenu() {
         val close = getItemWithURL(
             Material.BARRIER,
             DisplayURL.GUI_CLOSE.url,
-            locale().getValue("gui.item.main.menu")
+            locale().getValue("gui.item.back.menu")
         )
 
         setBlockedSlot(InventorySlots.SLOT5ROW6, close) { event ->
             event.isCancelled = true
-            showHomeDialog()
+            openWorldFolderMenu()
         }
     }
 }

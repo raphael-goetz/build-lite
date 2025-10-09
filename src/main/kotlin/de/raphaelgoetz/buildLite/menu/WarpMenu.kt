@@ -9,27 +9,35 @@ import de.raphaelgoetz.buildLite.item.createInactivePageLeftItem
 import de.raphaelgoetz.buildLite.item.createInactivePageRightItem
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
 import de.raphaelgoetz.buildLite.item.createPageRightItem
-import de.raphaelgoetz.buildLite.item.createPlayerDisplayItem
+import de.raphaelgoetz.buildLite.item.createWarpDisplayItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
-import org.bukkit.Bukkit
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerWarps
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import java.util.UUID
 
-fun Player.openPlayerMenu() {
+fun Player.openWarpMenu(worldUUID: UUID? = null) {
     closeDialog()
-    val clicks = Bukkit
-        .getOnlinePlayers()
-        .filter { uniqueId != it.uniqueId }
-        .map { createPlayerDisplayItem(it) }
+    var privateWarps = getSqlPlayerWarps(true)
+    var publicWarps = getSqlPlayerWarps(false)
+
+    worldUUID?.let {
+        privateWarps = privateWarps.filter { it.worldUuid == worldUUID }
+        publicWarps = publicWarps.filter { it.worldUuid == worldUUID }
+    }
+
+    val privateClicks = privateWarps.map { createWarpDisplayItem(it) }
+    val publicClicks = publicWarps.map { createWarpDisplayItem(it) }
+    val clicks = privateClicks + publicClicks
 
     openTransPageInventory(
-        "gui.player.title",
-        "Players",
-        InventoryRows.ROW6,
-        clicks,
-        InventorySlots.SLOT1ROW1,
-        InventorySlots.SLOT9ROW5
+        key = "",
+        fallback = "Warps",
+        rows = InventoryRows.ROW6,
+        list = clicks,
+        from = InventorySlots.SLOT1ROW1,
+        to = InventorySlots.SLOT9ROW5
     ) {
         pageLeft(InventorySlots.SLOT1ROW6, createPageLeftItem(), createInactivePageLeftItem())
         pageRight(InventorySlots.SLOT9ROW6, createPageRightItem(), createInactivePageRightItem())

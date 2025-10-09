@@ -2,31 +2,34 @@ package de.raphaelgoetz.buildLite.listener.minecraft
 
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.listenCancelled
+import de.raphaelgoetz.buildLite.listener.cancelWhenBuilder
 import de.raphaelgoetz.buildLite.registry.Door
-import de.raphaelgoetz.buildLite.store.BuildServer
 import org.bukkit.Material
+import org.bukkit.event.EventPriority
 import org.bukkit.event.block.*
 
-fun registerBlockEvents(server: BuildServer) {
+fun registerBlockEvents() {
 
-    listen<BlockBreakEvent> { blockBreakEvent ->
-        val player = server.asBuildPlayer(blockBreakEvent.player) ?: return@listen
+    listen<BlockBreakEvent>(EventPriority.LOWEST) { blockBreakEvent ->
+        val player = blockBreakEvent.player
 
-        if (!player.isBuilding) blockBreakEvent.isCancelled = true
-        if (player.player.itemInHand.type == Material.WOODEN_AXE) blockBreakEvent.isCancelled = true
+        if (player.activeItem.type == Material.WOODEN_AXE) {
+            blockBreakEvent.isCancelled = true
+            return@listen
+        }
+
+        player.cancelWhenBuilder(blockBreakEvent)
     }
 
     listen<BlockPhysicsEvent> { blockPhysicsEvent ->
         val material = blockPhysicsEvent.changedBlockData.material
 
         if (material.isDoor()) return@listen
-        val world = server.asBuildWorld(blockPhysicsEvent.block.world) ?: return@listen
-        val value = world.hasPhysics
-        blockPhysicsEvent.isCancelled = !value
+        blockPhysicsEvent.isCancelled = true
     }
 
     listen<BlockPlaceEvent> { blockPlaceEvent ->
-        val player = server.asBuildPlayer(blockPlaceEvent.player) ?: return@listen
+        val player = blockPlaceEvent.player
         player.cancelWhenBuilder(blockPlaceEvent)
     }
 
