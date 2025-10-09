@@ -1,35 +1,29 @@
-package de.raphaelgoetz.buildLite.dialog.warp
+package de.raphaelgoetz.buildLite.dialog.review
 
-import de.raphaelgoetz.buildLite.action.actionWarpCreate
+import de.raphaelgoetz.buildLite.action.actionCreateReview
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
 import io.papermc.paper.registry.data.dialog.action.DialogAction
 import io.papermc.paper.registry.data.dialog.input.DialogInput
+import io.papermc.paper.registry.data.dialog.input.TextDialogInput
 import io.papermc.paper.registry.data.dialog.type.DialogType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
-private const val FIELD_NAME_KEY = "warp_name"
-private const val FIELD_IS_PRIVATE_KEY = "warp_private"
+private const val FIELD_DESCRIPTION_KEY = "review_title_input"
+private const val FIELD_TITLE_KEY = "review_description_input"
 
 private fun Player.yesAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Confirm"),
-        Component.text("Confirm Changes"),
-        100,
-        DialogAction.customClick(
+        Component.text("Confirm"), Component.text("Confirm Changes"), 100, DialogAction.customClick(
             { view, _ ->
-                val name = view.getText(FIELD_NAME_KEY)
-                val isPrivate = view.getBoolean(FIELD_IS_PRIVATE_KEY)
+                val title = view.getText(FIELD_TITLE_KEY) ?: return@customClick
+                val description = view.getText(FIELD_DESCRIPTION_KEY) ?: return@customClick
 
-                if (name == null || isPrivate == null) {
-                    return@customClick
-                }
-
-                actionWarpCreate(name, isPrivate)
+                actionCreateReview(title, description)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -44,11 +38,18 @@ private fun Player.noAction(): ActionButton {
     )
 }
 
-private fun Player.createWarpCreationDialog(): Dialog {
-    val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Warp Name")).build()
-    val isPrivate = DialogInput.bool(FIELD_IS_PRIVATE_KEY, Component.text("Is Private")).build()
-
-    val base = DialogBase.builder(Component.text("Create Warp")).inputs(listOf(nameInput, isPrivate)).build()
+fun Player.createReviewCreationDialog(): Dialog {
+    val titleInput = DialogInput.text(FIELD_TITLE_KEY, Component.text("Title")).build()
+    val descriptionInput = DialogInput.text(
+        FIELD_DESCRIPTION_KEY,
+        200,
+        Component.text("Review"),
+        true,
+        "",
+        254,
+        TextDialogInput.MultilineOptions.create(20, 200)
+    )
+    val base = DialogBase.builder(Component.text("Add Review")).inputs(listOf(titleInput, descriptionInput)).build()
     val type = DialogType.confirmation(yesAction(), noAction())
 
     return Dialog.create { factory ->
@@ -58,7 +59,7 @@ private fun Player.createWarpCreationDialog(): Dialog {
     }
 }
 
-fun Player.showWarpCreationDialog() {
+fun Player.showReviewCreationDialog() {
     closeInventory()
-    showDialog(createWarpCreationDialog())
+    showDialog(createReviewCreationDialog())
 }

@@ -1,7 +1,6 @@
 package de.raphaelgoetz.buildLite.sql
 
 import de.raphaelgoetz.buildLite.world.LoadableLocation
-import de.raphaelgoetz.buildLite.world.LoadableWorld
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq

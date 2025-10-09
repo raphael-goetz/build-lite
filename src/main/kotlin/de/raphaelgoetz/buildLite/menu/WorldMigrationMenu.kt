@@ -17,6 +17,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 
 fun Player.openWorldMigrationMenu() {
+    closeDialog()
     val clicks = WorldMigrator.detect().map { createWorldMigrationItem(it) }
 
     openTransPageInventory(

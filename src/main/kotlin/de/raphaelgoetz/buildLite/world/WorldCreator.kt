@@ -18,7 +18,6 @@ object WorldCreator {
         name: String,
         generator: ChunkGenerator,
     ) {
-        println("Creating $name")
         val worldGenerator = WorldCreator(name)
         worldGenerator.environment(World.Environment.NORMAL)
         worldGenerator.generator(generator)
@@ -61,7 +60,7 @@ object WorldCreator {
 
         worldGenerator.createWorld()
 
-        doLater(2000) {
+        doLater(5) {
             listener.unregister()
         }
     }

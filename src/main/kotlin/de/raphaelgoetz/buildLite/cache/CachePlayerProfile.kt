@@ -14,7 +14,10 @@ data class CachePlayerProfile(
 
 object PlayerProfileCache {
 
+    var authAvailable = true
     private var cache = mutableMapOf<UUID, CachePlayerProfile>()
+
+
 
     fun init() {
         val uuids = selectUniquePlayerUuids()
@@ -25,7 +28,7 @@ object PlayerProfileCache {
             name?.let { result ->
                 val offlinePlayer = Bukkit.getOfflinePlayer(uuid)
                 val profile = offlinePlayer.playerProfile.update().join()
-                println("Cached the player's profile of: $result")
+                println("[build-lite] Cached the player's profile of: $result")
                 cache[uuid] = CachePlayerProfile(uuid, result, profile)
             }
         }
@@ -42,7 +45,7 @@ object PlayerProfileCache {
         name?.let { result ->
             val offlinePlayer = Bukkit.getOfflinePlayer(uuid)
             val profile = offlinePlayer.playerProfile.update().join()
-            println("Cached the player's profile of: $result")
+            println("[build-lite] Cached the player's profile of: $result")
             val cached = CachePlayerProfile(uuid, result, profile)
             cache[uuid] = cached
             return cached

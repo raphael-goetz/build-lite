@@ -31,14 +31,13 @@ repositories {
 }
 
 dependencies {
-    api 'de.raphaelgoetz:astralis:0.0.24-SNAPSHOT'
+    api 'de.raphaelgoetz:astralis:0.0.20'
 
     implementation 'org.jetbrains.exposed:exposed-core:0.61.0'
     implementation 'org.jetbrains.exposed:exposed-jdbc:0.61.0'
 
-    implementation('org.xerial:sqlite-jdbc:3.41.2.2') // latest version
-
-   // implementation 'org.apache.commons:commons-compress:1.26.0'
+    implementation('org.xerial:sqlite-jdbc:3.50.3.0')
+    implementation 'org.apache.commons:commons-compress:1.28.0'
 }
 
 tasks.named("runServer") {

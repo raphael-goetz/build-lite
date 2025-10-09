@@ -18,6 +18,7 @@ import org.bukkit.entity.Player
 import java.util.UUID
 
 fun Player.openWarpMenu(worldUUID: UUID? = null) {
+    closeDialog()
     var privateWarps = getSqlPlayerWarps(true)
     var publicWarps = getSqlPlayerWarps(false)
 

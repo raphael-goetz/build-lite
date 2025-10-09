@@ -21,7 +21,7 @@ atlassian-ide-plugin.xml
 
 # BlueJ files
 *.ctxt
-
+.kotlin
 # Package Files #
 *.jar
 *.war

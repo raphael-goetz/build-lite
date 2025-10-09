@@ -14,6 +14,7 @@ import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
 import io.papermc.paper.registry.data.dialog.action.DialogAction
+import io.papermc.paper.registry.data.dialog.body.DialogBody
 import io.papermc.paper.registry.data.dialog.input.DialogInput
 import io.papermc.paper.registry.data.dialog.input.SingleOptionDialogInput
 import io.papermc.paper.registry.data.dialog.type.DialogType
@@ -85,8 +86,12 @@ fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
         )
     ).build()
 
+    val body = DialogBody.plainMessage(Component.text("Only letters (A–Z, a–z) and numbers are allowed. Your input will automatically be converted to lowercase when saved."))
+
     val base =
-        DialogBase.builder(Component.text("Edit World")).inputs(listOf(nameInput, groupInput, genOption, stateOptions))
+        DialogBase.builder(Component.text("Edit World"))
+            .inputs(listOf(nameInput, groupInput, genOption, stateOptions))
+            .body(listOf(body))
             .build()
     val type = DialogType.confirmation(yesAction(record), noAction(record))
 

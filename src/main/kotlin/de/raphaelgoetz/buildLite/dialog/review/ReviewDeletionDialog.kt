@@ -1,7 +1,7 @@
-package de.raphaelgoetz.buildLite.dialog.warp
+package de.raphaelgoetz.buildLite.dialog.review
 
-import de.raphaelgoetz.buildLite.action.actionWarpDelete
-import de.raphaelgoetz.buildLite.sql.RecordPlayerWarp
+import de.raphaelgoetz.buildLite.action.actionDeleteReview
+import de.raphaelgoetz.buildLite.sql.RecordPlayerReview
 import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
@@ -11,14 +11,14 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 
-private fun Player.yesAction(record: RecordPlayerWarp): ActionButton {
+private fun Player.yesAction(record: RecordPlayerReview): ActionButton {
     return ActionButton.create(
         Component.text("Confirm"),
         Component.text("Confirm Changes"),
         100,
         DialogAction.customClick(
             { _, _ ->
-                actionWarpDelete(record)
+                actionDeleteReview(record)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -30,9 +30,9 @@ private fun Player.noAction(): ActionButton {
     )
 }
 
-private fun Player.createWarpDeletionDialog(record: RecordPlayerWarp): Dialog {
+private fun Player.createReviewDeletionDialog(record: RecordPlayerReview): Dialog {
     val type = DialogType.confirmation(yesAction(record), noAction())
-    val base = DialogBase.builder(Component.text("Delete Warp")).build()
+    val base = DialogBase.builder(Component.text("Delete Review")).build()
     return Dialog.create { factory ->
         val builder = factory.empty()
         builder.type(type)
@@ -40,7 +40,7 @@ private fun Player.createWarpDeletionDialog(record: RecordPlayerWarp): Dialog {
     }
 }
 
-fun Player.showWarpDeletionDialog(record: RecordPlayerWarp) {
+fun Player.showReviewDeletionDialog(record: RecordPlayerReview) {
     closeInventory()
-    showDialog(createWarpDeletionDialog(record))
+    showDialog(createReviewDeletionDialog(record))
 }

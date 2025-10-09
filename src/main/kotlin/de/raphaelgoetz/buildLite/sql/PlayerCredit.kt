@@ -51,6 +51,18 @@ fun LoadableWorld.getSqlPlayerCredits(): List<RecordPlayerCredit> = transaction 
         }
 }
 
+fun RecordWorld.getSqlPlayerCredits(): List<RecordPlayerCredit> = transaction {
+    SqlPlayerCredit
+        .selectAll()
+        .where { SqlPlayerCredit.worldUUID eq uniqueId }
+        .map { record ->
+            RecordPlayerCredit(
+                playerUuid = record[SqlPlayerCredit.playerUUID],
+                worldUuid = record[SqlPlayerCredit.worldUUID],
+            )
+        }
+}
+
 fun RecordWorld.deleteSqlPlayerCredits() = transaction {
     SqlPlayerCredit.deleteWhere { SqlPlayerCredit.worldUUID eq uniqueId }
 }

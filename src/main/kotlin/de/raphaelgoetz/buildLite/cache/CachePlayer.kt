@@ -13,8 +13,9 @@ object PlayerCache {
 
     private val players = HashMap<UUID, CachePlayer>()
 
-    fun getOrInit(player: Player): CachePlayer {
+    fun all() = players.values.toList()
 
+    fun getOrInit(player: Player): CachePlayer {
         val optional = players.get(player.uniqueId)
 
         if (optional != null) {
@@ -22,7 +23,9 @@ object PlayerCache {
         }
 
         val record = player.initSqlPlayer()
-        return CachePlayer(player.uniqueId, record)
+        val player = CachePlayer(player.uniqueId, record)
+        players[player.playerUUID] = player
+        return player
     }
 
     fun flush(player: Player) {

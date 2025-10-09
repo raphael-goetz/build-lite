@@ -11,5 +11,5 @@ fun Player.createPageRightItem(): ItemStack {
 }
 
 fun Player.createInactivePageRightItem(): ItemStack {
-    return smartTransItem<ItemMeta>("gui.item.arrow.right", material = Material.GRAY_DYE).itemStack
+    return smartTransItem<ItemMeta>("gui.item.arrow.right_inactive", material = Material.GRAY_DYE).itemStack
 }

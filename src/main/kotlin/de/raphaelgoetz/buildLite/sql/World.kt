@@ -27,7 +27,6 @@ object SqlWorld : Table("worlds") {
     val state = enumerationByName("state", WORLD_STATE_NAME_COLUMN_LENGTH, WorldState::class)
     val generator = enumerationByName("generator", WORLD_GENERATOR_NAME_COLUMN_LENGTH, WorldGenerator::class)
     val creatorUuid = uuid("creator_uuid")
-    val physicsEnabled = bool("physics_enabled")
 
     // Spawn Data
     val spawnX = double("spawn_x")
@@ -45,7 +44,6 @@ data class RecordWorld(
     val state: WorldState,
     val creatorUuid: UUID,
     val uniqueId: UUID,
-    val physicsEnabled: Boolean,
     val generator: WorldGenerator,
     val loadableSpawn: LoadableLocation
 )
@@ -65,11 +63,10 @@ fun Player.createSqlWorld(
         record[SqlWorld.state] = state
         record[SqlWorld.generator] = generator
         record[SqlWorld.creatorUuid] = uniqueId
-        record[SqlWorld.physicsEnabled] = false
 
-        record[spawnX] = 0.0
-        record[spawnY] = 64.0
-        record[spawnZ] = 0.0
+        record[spawnX] = 0.5
+        record[spawnY] = 65.0
+        record[spawnZ] = 0.5
         record[spawnPitch] = 0f
         record[spawnYaw] = 0f
     }
@@ -81,14 +78,12 @@ fun RecordWorld.updateSqlWorld(
     name: String? = null,
     group: String? = null,
     spawn: LoadableLocation? = null,
-    physicsEnabled: Boolean? = null,
     state: WorldState? = null,
     generator: WorldGenerator? = null,
 ): RecordWorld = transaction {
     SqlWorld.update({ SqlWorld.uuid eq uniqueId }) { record ->
         name?.let { value -> record[SqlWorld.name] = value }
         group?.let { value -> record[SqlWorld.group] = value }
-        physicsEnabled?.let { value -> record[SqlWorld.physicsEnabled] = value }
         state?.let { value -> record[SqlWorld.state] = value }
         generator?.let { value -> record[SqlWorld.generator] = value }
         spawn?.let { value ->
@@ -132,7 +127,6 @@ private fun ResultRow.toRecordWorld() = RecordWorld(
         yaw = this[SqlWorld.spawnYaw],
     ),
     generator = this[SqlWorld.generator],
-    physicsEnabled = this[SqlWorld.physicsEnabled],
     state = this[SqlWorld.state],
 )
 

@@ -28,6 +28,7 @@ import org.bukkit.inventory.meta.BannerMeta
 
 fun Player.openBannerCreationMenu() {
     val menu = BannerCreationMenu()
+    closeDialog()
     menu.openBannerCreationMenu(this)
 }
 
@@ -50,7 +51,6 @@ private class BannerCreationMenu() {
     private fun ItemStack.checkMaxPatterns(player: Player) {
         val meta = itemMeta as? BannerMeta ?: return
         if (meta.patterns.size >= 6) {
-            player.sendMessage(Component.text("✅ Your banner has reached the maximum of 6 patterns."))
             player.closeInventory()
             player.inventory.addItem(this)
         }

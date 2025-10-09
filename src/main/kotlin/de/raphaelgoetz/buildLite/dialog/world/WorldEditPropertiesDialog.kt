@@ -1,5 +1,8 @@
 package de.raphaelgoetz.buildLite.dialog.world
 
+import de.raphaelgoetz.astralis.text.components.adventureText
+import de.raphaelgoetz.buildLite.action.actionUpdateWorldSpawn
+import de.raphaelgoetz.buildLite.dialog.createAction
 import de.raphaelgoetz.buildLite.dialog.credit.createCreditAddDialog
 import de.raphaelgoetz.buildLite.dialog.credit.createCreditRemoveDialog
 import de.raphaelgoetz.buildLite.sql.RecordWorld
@@ -49,7 +52,6 @@ private fun Player.createWorldEditPropertyDialog(recordWorld: RecordWorld): Dial
 }
 
 fun Player.showWorldEditPropertyDialog(recordWorld: RecordWorld) {
-    closeDialog()
     closeInventory()
     showDialog(createWorldEditPropertyDialog(recordWorld))
 }

@@ -16,6 +16,7 @@ object SqlPlayer : Table("players") {
     // Modes
     val nightMode = bool("night_mode")
     val buildMode = bool("build_mode")
+    val reviewMode = bool("review_mode")
 
     // Last Known Location
     val locationWorld = uuid("spawn_world").nullable()
@@ -32,6 +33,7 @@ data class RecordPlayer(
     val uuid: UUID,
     val nightMode: Boolean,
     val buildMode: Boolean,
+    val reviewMode: Boolean,
     val lastKnownLocation: LoadableLocation?,
 )
 
@@ -45,6 +47,7 @@ fun Player.initSqlPlayer(): RecordPlayer = transaction {
             it[uuid] = uniqueId
             it[SqlPlayer.nightMode] = false
             it[SqlPlayer.buildMode] = false
+            it[SqlPlayer.reviewMode] = false
         }
     }
 
@@ -54,11 +57,13 @@ fun Player.initSqlPlayer(): RecordPlayer = transaction {
 fun Player.updateSqlPlayer(
     buildMode: Boolean? = null,
     nightMode: Boolean? = null,
+    reviewMode: Boolean? = null,
     location: LoadableLocation? = null
 ): RecordPlayer = transaction {
     SqlPlayer.update({ uuid eq uniqueId }) {
         buildMode?.let { mode -> it[SqlPlayer.buildMode] = mode }
         nightMode?.let { mode -> it[SqlPlayer.nightMode] = mode }
+        reviewMode?.let { mode -> it[SqlPlayer.reviewMode] = mode }
         location?.let { location ->
             it[SqlPlayer.locationWorld] = location.worldUuid
             it[SqlPlayer.locationX] = location.x
@@ -78,6 +83,7 @@ fun Player.getSqlPlayer(): RecordPlayer = transaction {
         uuid = record[uuid],
         nightMode = record[SqlPlayer.nightMode],
         buildMode = record[SqlPlayer.buildMode],
+        reviewMode = record[SqlPlayer.reviewMode],
         lastKnownLocation = run {
             val worldUuid = record[SqlPlayer.locationWorld]
             val x = record[SqlPlayer.locationX]

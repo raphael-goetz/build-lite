@@ -9,42 +9,40 @@ import de.raphaelgoetz.buildLite.item.createInactivePageLeftItem
 import de.raphaelgoetz.buildLite.item.createInactivePageRightItem
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
 import de.raphaelgoetz.buildLite.item.createPageRightItem
-import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
-import de.raphaelgoetz.buildLite.item.createWorldFolderItem
+import de.raphaelgoetz.buildLite.item.createReviewDisplayItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
-import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedFavoriteWorlds
-import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedWorlds
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerReviews
 import org.bukkit.Material
-
 import org.bukkit.entity.Player
+import java.util.UUID
 
-fun Player.openWorldFolderMenu() {
+fun Player.openReviewMenu(worldUUID: UUID) {
     closeDialog()
-    val favorites = getPermittedFavoriteWorlds().map { createWorldDisplayItem(it) }
-    val folders = getPermittedWorlds().map { createWorldFolderItem(it) }
-    val clicks = favorites + folders
+    val clicks = getSqlPlayerReviews(worldUUID).map {
+        createReviewDisplayItem(it)
+    }
 
     openTransPageInventory(
-        key = "menu.world_folder.title",
-        fallback = "World Folders",
+        key = "",
+        fallback = "Reviews",
         rows = InventoryRows.ROW6,
         list = clicks,
         from = InventorySlots.SLOT1ROW1,
-        to = InventorySlots.SLOT9ROW5,
-    )  {
+        to = InventorySlots.SLOT9ROW5
+    ) {
         pageLeft(InventorySlots.SLOT1ROW6, createPageLeftItem(), createInactivePageLeftItem())
         pageRight(InventorySlots.SLOT9ROW6, createPageRightItem(), createInactivePageRightItem())
 
         val close = getItemWithURL(
             Material.BARRIER,
             DisplayURL.GUI_CLOSE.url,
-            locale().getValue("gui.item.main.menu")
+            locale().getValue("gui.item.back.menu")
         )
 
         setBlockedSlot(InventorySlots.SLOT5ROW6, close) { event ->
             event.isCancelled = true
-            showHomeDialog()
+            openWorldFolderMenu()
         }
     }
 }

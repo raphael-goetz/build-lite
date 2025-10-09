@@ -17,6 +17,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 
 fun Player.openPlayerMenu() {
+    closeDialog()
     val clicks = Bukkit
         .getOnlinePlayers()
         .filter { uniqueId != it.uniqueId }

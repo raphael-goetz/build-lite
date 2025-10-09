@@ -1,0 +1,13 @@
+http:
+  hasServer: true
+  port: 8080
+  host: "127.0.0.1"
+location:
+  x: 0.5
+  y: 100
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+sql:
+  driver: "org.sqlite.JDBC"
+  url: "jdbc:sqlite:worlds.db"

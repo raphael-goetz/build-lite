@@ -8,6 +8,7 @@ import de.raphaelgoetz.astralis.text.components.RenderMode
 import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ux.color.Colorization
+import de.raphaelgoetz.buildLite.formatting.capitalizeFirst
 import de.raphaelgoetz.buildLite.menu.openWorldDisplayMenu
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.sql.RecordWorld
@@ -23,7 +24,7 @@ import java.util.UUID
 
 fun Player.createWorldFolderItem(worldFolder: WorldFolder): SmartClick {
     val item = createSmartItem<SkullMeta>(
-        name = worldFolder.group,
+        name = worldFolder.group.capitalizeFirst(),
         material = Material.PLAYER_HEAD,
         interactionType = InteractionType.DISPLAY_CLICK,
         tagResolver = listOf(Placeholder.parsed("folder", name))
@@ -52,7 +53,7 @@ private fun getFolderDescription(worlds: List<RecordWorld>): List<Component> {
 
     val lines = displayWorlds.mapIndexed { index, item ->
         val prefix = if (index == displayWorlds.lastIndex && !hasMore) "└ " else "├ "
-        adventureText("$prefix${item.name}") {
+        adventureText("$prefix${item.name.capitalizeFirst()}") {
             type = CommunicationType.NONE
             color = Colorization.BLUE
             renderMode = RenderMode.LORE

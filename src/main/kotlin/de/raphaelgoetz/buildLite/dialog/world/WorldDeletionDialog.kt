@@ -6,6 +6,7 @@ import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
 import io.papermc.paper.registry.data.dialog.action.DialogAction
+import io.papermc.paper.registry.data.dialog.body.DialogBody
 import io.papermc.paper.registry.data.dialog.type.DialogType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
@@ -32,8 +33,9 @@ private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
 }
 
 fun Player.createWorldDeletionDialog(record: RecordWorld): Dialog {
+    val body = DialogBody.plainMessage(Component.text("Pressing confirm will permanently delete this world. No undo possible."))
     val type = DialogType.confirmation(yesAction(record), noAction(record))
-    val base = DialogBase.builder(Component.text("Delete World")).build()
+    val base = DialogBase.builder(Component.text("Delete World")).body(listOf(body)).build()
     return Dialog.create { factory ->
         val builder = factory.empty()
         builder.type(type)

@@ -7,6 +7,7 @@ import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.text.translation.sendTransText
 import de.raphaelgoetz.buildLite.action.actionUpdateLastLocation
+import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
@@ -34,6 +35,11 @@ fun registerPlayerEvents() {
         player.gameMode = GameMode.CREATIVE
         val cachedPlayer = PlayerCache.getOrInit(player = event.player)
         val location = cachedPlayer.recordPlayer.lastKnownLocation
+
+        when (cachedPlayer.recordPlayer.reviewMode) {
+            true -> CacheReview.showAll(player)
+            false -> CacheReview.hideAll(player)
+        }
 
         // This will teleport the player to his last known location
         location?.let {
@@ -120,7 +126,6 @@ fun registerPlayerEvents() {
         for (world in worlds) {
             if (world.uniqueId.toString() != targetWorldName) continue
             if (player.hasWorldEnterPermission(world.name, world.group)) continue
-            player.sendMessage("You do not have permission to create this world.")
             player.teleportAsync(playerTeleportEvent.from)
             break
         }

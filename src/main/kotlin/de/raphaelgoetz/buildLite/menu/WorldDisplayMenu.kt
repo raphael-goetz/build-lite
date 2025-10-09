@@ -16,6 +16,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 
 fun Player.openWorldDisplayMenu(folder: WorldFolder) {
+    closeDialog()
     val worlds = folder.worlds.map { createWorldDisplayItem(it) }
 
     openTransPageInventory(

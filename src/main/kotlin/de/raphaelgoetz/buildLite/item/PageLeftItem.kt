@@ -11,5 +11,5 @@ fun Player.createPageLeftItem(): ItemStack {
 }
 
 fun Player.createInactivePageLeftItem(): ItemStack {
-    return smartTransItem<ItemMeta>("gui.item.arrow.left", material = Material.GRAY_DYE).itemStack
+    return smartTransItem<ItemMeta>("gui.item.arrow.left_inactive", material = Material.GRAY_DYE).itemStack
 }
