@@ -2,6 +2,7 @@ package de.raphaelgoetz.buildLite.entity
 
 import de.raphaelgoetz.buildLite.BuildLiteInstance
 import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
+import de.raphaelgoetz.buildLite.player.createPlayerComponent
 import de.raphaelgoetz.buildLite.player.createPlayerHead
 import de.raphaelgoetz.buildLite.sql.RecordPlayerReview
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerReview
@@ -67,10 +68,7 @@ data class Review(
             Component.text(recordPlayerReview.description).append(
                 Component.newline().append(
                     Component.newline().append(
-                        Component.text("Created by: ").append(
-                            createPlayerHead(creator).append {
-                                Component.text(creator.playerName)
-                            })
+                        Component.text("Created by: ").append(creator.createPlayerComponent())
                     )
                 )
             )
@@ -81,9 +79,8 @@ data class Review(
             text = text.append(
                 Component.newline().append(
                     Component.text("Reviewed by: ").append(
-                        createPlayerHead(reviewer).append {
-                            Component.text(reviewer.playerName)
-                        })
+                        reviewer.createPlayerComponent()
+                    )
                 )
             )
         }

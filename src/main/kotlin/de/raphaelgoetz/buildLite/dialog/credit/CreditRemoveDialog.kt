@@ -2,6 +2,7 @@ package de.raphaelgoetz.buildLite.dialog.credit
 
 import de.raphaelgoetz.buildLite.action.actionRemoveCredit
 import de.raphaelgoetz.buildLite.dialog.world.showWorldEditPropertyDialog
+import de.raphaelgoetz.buildLite.sanitiser.getProtectedString
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import org.bukkit.Bukkit
 
@@ -19,9 +20,9 @@ private const val FIELD_NAME_KEY = "credit_name"
 
 private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Confirm"), Component.text("Confirm Changes"), 100, DialogAction.customClick(
+        Component.text("Confirm"), Component.text("Remove the selected player from the credit list."), 100, DialogAction.customClick(
             { view, _ ->
-                val name = view.getText(FIELD_NAME_KEY) ?: return@customClick
+                val name = view.getProtectedString(FIELD_NAME_KEY, this) ?: return@customClick
                 val offlinePlayer = Bukkit.getOfflinePlayer(name)
                 actionRemoveCredit(offlinePlayer.uniqueId, recordWorld.uniqueId)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
@@ -31,7 +32,7 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
 
 private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Discard Changes"), 100, DialogAction.customClick(
+        Component.text("Cancel"), Component.text("Return without removing any credits."), 100, DialogAction.customClick(
             { _, _ -> showWorldEditPropertyDialog(recordWorld) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
@@ -39,7 +40,7 @@ private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
 }
 
 fun Player.createCreditRemoveDialog(recordWorld: RecordWorld): Dialog {
-    val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Players Name")).build()
+    val nameInput = DialogInput.text(FIELD_NAME_KEY, Component.text("Enter Players Name")).build()
 
     val base = DialogBase.builder(Component.text("Remove Credit")).inputs(listOf(nameInput)).build()
     val type = DialogType.confirmation(yesAction(recordWorld), noAction(recordWorld))

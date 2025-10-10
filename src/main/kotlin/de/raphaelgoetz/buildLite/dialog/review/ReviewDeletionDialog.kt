@@ -14,7 +14,7 @@ import org.bukkit.entity.Player
 private fun Player.yesAction(record: RecordPlayerReview): ActionButton {
     return ActionButton.create(
         Component.text("Confirm"),
-        Component.text("Confirm Changes"),
+        Component.text("Permanently delete this review"),
         100,
         DialogAction.customClick(
             { _, _ ->
@@ -26,7 +26,7 @@ private fun Player.yesAction(record: RecordPlayerReview): ActionButton {
 
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Discard Changes"), 100, null
+        Component.text("Discard"), Component.text("Keep this review and close the dialog"), 100, null
     )
 }
 

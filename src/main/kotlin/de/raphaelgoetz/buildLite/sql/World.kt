@@ -130,6 +130,6 @@ private fun ResultRow.toRecordWorld() = RecordWorld(
     state = this[SqlWorld.state],
 )
 
-private fun getSqlWorld(uuid: UUID): RecordWorld = transaction {
+fun getSqlWorld(uuid: UUID): RecordWorld = transaction {
     return@transaction SqlWorld.selectAll().where { SqlWorld.uuid eq uuid }.single().toRecordWorld()
 }

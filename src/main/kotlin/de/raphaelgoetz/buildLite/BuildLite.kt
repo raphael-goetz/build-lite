@@ -2,6 +2,7 @@ package de.raphaelgoetz.buildLite
 
 import de.raphaelgoetz.astralis.Astralis
 import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
+import de.raphaelgoetz.buildLite.command.registerCommands
 import de.raphaelgoetz.buildLite.config.PluginConfig
 import de.raphaelgoetz.buildLite.listener.registerListener
 import de.raphaelgoetz.buildLite.server.FileServer
@@ -12,6 +13,7 @@ import de.raphaelgoetz.buildLite.sql.SqlPlayerReview
 import de.raphaelgoetz.buildLite.sql.SqlPlayerWarp
 import de.raphaelgoetz.buildLite.sql.SqlWorld
 import de.raphaelgoetz.buildLite.world.WorldLoader
+
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.jetbrains.exposed.sql.Database
@@ -84,6 +86,7 @@ class BuildLite : Astralis() {
         }
 
         registerListener()
+        registerCommands()
     }
 
     override fun disable() {

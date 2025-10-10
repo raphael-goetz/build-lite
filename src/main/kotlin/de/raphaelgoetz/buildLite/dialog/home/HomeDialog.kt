@@ -49,36 +49,36 @@ private fun Player.createHomeDialog(): Dialog {
 
     //Actions
     val actions = mutableListOf(
-        createAction("Banner Menu", "Click to open the Banner Menu") { _, _ ->
+        createAction("Banner Menu", "Open the banner creation menu.") { _, _ ->
             openBannerCreationMenu()
         },
-        createAction("Create World", "Click to create a new world") { _, _ ->
+        createAction("Create World", "Start creating a new world.") { _, _ ->
             showWorldCreationDialog()
         },
-        createAction("Warp Menu", "Click to open the Warp Menu") { _, _ ->
+        createAction("Warp Menu", "Browse your available warps.") { _, _ ->
             openWarpMenu()
         },
-        createAction("Create Warp", "Click to create a new warp") { _, _ ->
+        createAction("Create Warp", "Set a new warp point at your current location.") { _, _ ->
             showWarpCreationDialog()
         },
-        createAction("Player Menu", "Click to open the Player Menu") { _, _ ->
+        createAction("Player Menu", "Open the player menu to quick teleport to a players location.") { _, _ ->
             openPlayerMenu()
         },
-        createAction("Create Review", "Click to open the Banner Menu") { _, _ ->
+        createAction("Create Review", "Start a new review for your world.") { _, _ ->
             showReviewCreationDialog()
         },
-        createAction("World Menu", "Click to open the World Menu", if (hasMigrations) 100 else 200) { _, _ ->
+        createAction("World Menu", "Open your world selection menu.", if (hasMigrations) 100 else 200) { _, _ ->
             openWorldFolderMenu()
         },
     )
 
     if (hasMigrations) {
-        actions.add(createAction("Migrate Worlds", "Click to open the Migration Menu", 100) { _, _ ->
+        actions.add(createAction("Migrate Worlds", "Click to start a migration process for a world.", 100) { _, _ ->
             openWorldMigrationMenu()
         })
     }
 
-    val closeAction = createAction("Close", "This will open the world Menu") { view, _ ->
+    val closeAction = createAction("Close", "Close the home menu.") { view, _ ->
         val speed = view.getFloat(FIELD_SPEED_KEY)
         val nightMode = view.getText(FIELD_NIGHT_MODE_KEY)
         val buildMode= view.getText(FIELD_BUILD_MODE_KEY)
