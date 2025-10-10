@@ -19,24 +19,24 @@ fun Player.showWorldActionDialog(recordWorld: RecordWorld) {
 
 private fun Player.createWorldActionDialog(recordWorld: RecordWorld): Dialog {
     val actions = listOf(
-        createAction("Copy UUID", "Click to copy the uuid") { _, _ ->
-            sendMessage(adventureText("$PREFIX Click this message to copy the uuid of the world ${recordWorld.name}.") {
+        createAction("Copy UUID", "Click to copy this world's unique identifier") { _, _ ->
+            sendMessage(adventureText("$PREFIX Click this message to copy the UUID for world ${recordWorld.name}.") {
                 onCopyClipboard(recordWorld.uniqueId.toString())
             })
         },
-        createAction("Set World Spawn", "This will update the spawn of this world to your current location") { _,_ ->
+        createAction("Set World Spawn", "Set the world's spawn point to your current location") { _,_ ->
             actionUpdateWorldSpawn(recordWorld)
         },
-        createAction("Create Release", "This will export the world and make it downloadable") { _,_ ->
+        createAction("Create Release", "Export this world and make it available for download") { _,_ ->
             WorldLoader.lazyExport(recordWorld)
         }
     )
 
-    val closeAction = createAction("Back", "This will open the world Menu") { _, _ ->
+    val closeAction = createAction("Back", "Return to the world menu") { _, _ ->
         openWorldFolderMenu()
     }
 
-    val base = DialogBase.builder(Component.text("World Action Menu")).build()
+    val base = DialogBase.builder(Component.text("World Actions")).build()
     val type = DialogType.multiAction(actions, closeAction, 2)
 
     return Dialog.create { factory ->

@@ -2,6 +2,9 @@ package de.raphaelgoetz.buildLite.dialog.world
 
 import de.raphaelgoetz.buildLite.action.actionWorldMigrate
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
+import de.raphaelgoetz.buildLite.sanitiser.getProtectedString
+import de.raphaelgoetz.buildLite.sanitiser.sanitiseNameInput
+import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.sql.types.WorldState
 import de.raphaelgoetz.buildLite.sql.types.asDialogInput
@@ -26,17 +29,12 @@ private const val FIELD_GENERATOR_KEY = "migrate_generator"
 
 private fun Player.yesAction(initialName: String): ActionButton {
     return ActionButton.create(
-        Component.text("Confirm"), Component.text("Confirm Changes"), 100, DialogAction.customClick(
+        Component.text("Confirm"), Component.text("Confirm Migration"), 100, DialogAction.customClick(
             { view, _ ->
-                val name = view.getText(FIELD_NAME_KEY)
-                val group = view.getText(FIELD_GROUP_KEY)
-                val state = view.getText(FIELD_STATE_KEY)?.toWorldState()
-                val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator()
-
-                if (name == null || group == null || state == null || gen == null) {
-                    return@customClick
-                }
-
+                val name = view.getProtectedString(FIELD_NAME_KEY, this)?.sanitiseNameInput() ?: return@customClick
+                val group = view.getProtectedString(FIELD_GROUP_KEY, this)?.sanitiseNameInput() ?: return@customClick
+                val state = view.getText(FIELD_STATE_KEY)?.toWorldState() ?: return@customClick
+                val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator() ?: return@customClick
                 actionWorldMigrate(initialName, name, group, gen, state)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
@@ -45,7 +43,7 @@ private fun Player.yesAction(initialName: String): ActionButton {
 
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
-        Component.text("Discard"), Component.text("Discard Changes"), 100, DialogAction.customClick(
+        Component.text("Discard"), Component.text("Cancel and return to the Home Menu"), 100, DialogAction.customClick(
             { _, _ -> showHomeDialog() },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
@@ -65,23 +63,13 @@ private fun Player.createWorldMigrationDialog(initialName: String): Dialog {
         DialogInput.singleOption(FIELD_GENERATOR_KEY, Component.text("Generator"), listOf(voidOption, grayOption))
             .build()
 
-    val notStartedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.NOT_STARTED.asDialogInput(), Component.text("Not Started"), true
-    )
-    val planingOption =
-        SingleOptionDialogInput.OptionEntry.create(WorldState.PLANING.asDialogInput(), Component.text("Planing"), false)
-    val underConstructionOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.UNDER_CONSTRUCTION.asDialogInput(), Component.text("Under Construction"), false
-    )
-    val reviewRequestedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.REVIEW_REQUIRED.asDialogInput(), Component.text("Review Requested"), false
-    )
-    val finishedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.FINISHED.asDialogInput(), Component.text("Finished"), false
-    )
-    val archivedOption = SingleOptionDialogInput.OptionEntry.create(
-        WorldState.ARCHIVED.asDialogInput(), Component.text("Archived"), false
-    )
+    val notStartedOption = WorldState.NOT_STARTED.createSingleInput(true)
+    val planingOption = WorldState.PLANING.createSingleInput(false)
+    val underConstructionOption = WorldState.UNDER_CONSTRUCTION.createSingleInput(false)
+    val reviewRequestedOption = WorldState.REVIEW_REQUIRED.createSingleInput(false)
+    val finishedOption = WorldState.FINISHED.createSingleInput(false)
+    val archivedOption = WorldState.ARCHIVED.createSingleInput(false)
+
     val stateOptions = DialogInput.singleOption(
         FIELD_STATE_KEY, Component.text("State"), listOf(
             notStartedOption,
@@ -92,6 +80,7 @@ private fun Player.createWorldMigrationDialog(initialName: String): Dialog {
             archivedOption,
         )
     ).build()
+
     val body = DialogBody.plainMessage(Component.text("Only letters (A–Z, a–z) and numbers are allowed. Your input will automatically be converted to lowercase when saved."))
 
     val base = DialogBase.builder(Component.text("Create World"))
@@ -108,4 +97,10 @@ private fun Player.createWorldMigrationDialog(initialName: String): Dialog {
 fun Player.showWorldMigrationDialog(initialName: String) {
     closeInventory()
     showDialog(createWorldMigrationDialog(initialName))
+}
+
+private fun WorldState.createSingleInput(initial: Boolean): SingleOptionDialogInput.OptionEntry {
+    return SingleOptionDialogInput.OptionEntry.create(
+        asDialogInput(), Component.text(text), initial
+    )
 }

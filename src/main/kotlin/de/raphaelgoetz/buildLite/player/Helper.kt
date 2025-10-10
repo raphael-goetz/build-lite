@@ -4,10 +4,14 @@ import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.ux.color.Colorization
 import de.raphaelgoetz.buildLite.PREFIX
 import de.raphaelgoetz.buildLite.cache.CachePlayerProfile
+import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
+import de.raphaelgoetz.buildLite.sql.updateSqlWorld
+import de.raphaelgoetz.buildLite.world.LoadableLocation
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.`object`.ObjectContents
 import net.kyori.adventure.text.`object`.PlayerHeadObjectContents
 import org.bukkit.entity.Player
+import java.util.UUID
 
 fun Player.hasWorldEnterPermission(name: String, group: String): Boolean {
     if (hasPermission("build-lite.*")) return true
@@ -46,4 +50,24 @@ fun Player.checkPermission(permission: String): Boolean {
         return false
     }
     return true
+}
+
+fun CachePlayerProfile.createPlayerComponent(): Component {
+    return createPlayerHead(this, true).append(
+        Component.text(" ").append(
+            Component.text(playerName)
+        )
+    )
+}
+
+fun Player.getCurrentWorldUUID(): UUID? {
+    try {
+        val currentWorldUUid = UUID.fromString(location.world.name)
+        return currentWorldUUid
+    } catch (_: Exception) {
+        sendMessage(adventureText("$PREFIX An unexpected error occurred.") {
+            color = Colorization.LIME
+        })
+        return null
+    }
 }

@@ -1,8 +1,5 @@
 package de.raphaelgoetz.buildLite.dialog.world
 
-import de.raphaelgoetz.astralis.text.components.adventureText
-import de.raphaelgoetz.buildLite.action.actionUpdateWorldSpawn
-import de.raphaelgoetz.buildLite.dialog.createAction
 import de.raphaelgoetz.buildLite.dialog.credit.createCreditAddDialog
 import de.raphaelgoetz.buildLite.dialog.credit.createCreditRemoveDialog
 import de.raphaelgoetz.buildLite.sql.RecordWorld
@@ -21,7 +18,7 @@ import org.bukkit.entity.Player
 private fun Player.exitAction(): ActionButton {
     return ActionButton.create(
         Component.text("Back"),
-        Component.text("Open Home Menu"),
+        Component.text("Return to the home menu"),
         100,
         DialogAction.customClick(
             { _, _ ->

@@ -1,6 +1,7 @@
 package de.raphaelgoetz.buildLite.dialog.world
 
 import de.raphaelgoetz.buildLite.action.actionWorldUpdate
+import de.raphaelgoetz.buildLite.sanitiser.getProtectedString
 import de.raphaelgoetz.buildLite.sanitiser.sanitiseGroupInput
 import de.raphaelgoetz.buildLite.sanitiser.sanitiseNameInput
 import de.raphaelgoetz.buildLite.sql.RecordWorld
@@ -34,15 +35,10 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
         100,
         DialogAction.customClick(
             { view, _ ->
-                val name = view.getText(FIELD_NAME_KEY)?.sanitiseNameInput()
-                val group = view.getText(FIELD_GROUP_KEY)?.sanitiseGroupInput()
-                val state = view.getText(FIELD_STATE_KEY)?.toWorldState()
-                val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator()
-
-                if (name == null || group == null || state == null || gen == null) {
-                    return@customClick
-                }
-
+                val name = view.getProtectedString(FIELD_NAME_KEY, this)?.sanitiseNameInput()  ?: return@customClick
+                val group = view.getProtectedString(FIELD_GROUP_KEY, this)?.sanitiseGroupInput() ?: return@customClick
+                val state = view.getText(FIELD_STATE_KEY)?.toWorldState() ?: return@customClick
+                val gen = view.getText(FIELD_GENERATOR_KEY)?.toWorldGenerator() ?: return@customClick
                 actionWorldUpdate(recordWorld, name, group, generator = gen, state = state)
             }, ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )

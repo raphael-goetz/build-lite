@@ -3,6 +3,9 @@ package de.raphaelgoetz.buildLite.world
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.unregister
 import de.raphaelgoetz.astralis.schedule.doLater
+import de.raphaelgoetz.astralis.text.sendText
+import de.raphaelgoetz.astralis.ux.color.Colorization
+import de.raphaelgoetz.buildLite.PREFIX
 import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.config.toJson
 import de.raphaelgoetz.buildLite.config.toMeta
@@ -14,6 +17,7 @@ import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerLocation
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerWarps
 import de.raphaelgoetz.buildLite.sql.deleteSqlWorld
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerReviews
+import de.raphaelgoetz.buildLite.sql.getSqlWorld
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.sql.types.toGenerator
 
@@ -42,9 +46,14 @@ object WorldLoader {
 
     fun lazyTeleport(loadableLocation: LoadableLocation, generator: WorldGenerator, player: Player) {
         val world = Bukkit.getWorld(loadableLocation.worldUuid.toString())
+        val record = getSqlWorld(loadableLocation.worldUuid)
+
         if (world != null) {
             val location = loadableLocation.toLocation(world)
             player.teleportAsync(location)
+            player.sendText("$PREFIX You entered the world: ${record.name}") {
+                color = Colorization.LIME
+            }
             return
         }
 
@@ -57,6 +66,9 @@ object WorldLoader {
             val world = event.world
             val location = loadableLocation.toLocation(world)
             player.teleportAsync(location)
+            player.sendText("$PREFIX You entered the world: ${record.name}") {
+                color = Colorization.LIME
+            }
         }
 
         lazyLoad(LoadableWorld(loadableLocation.worldUuid), generator)
@@ -69,6 +81,9 @@ object WorldLoader {
     fun lazyUnload(world: World) {
         for (player in world.players) {
             player.teleportAsync(spawnLocation)
+            player.sendText("$PREFIX Your current world has been unloaded. You've been teleported back to the servers spawn.") {
+                color = Colorization.RED
+            }
         }
 
         CacheReview.unloadWorld(world)
@@ -80,6 +95,9 @@ object WorldLoader {
         val nullableWorld = Bukkit.getWorld(record.uniqueId.toString())
         nullableWorld?.let { world ->
             for (player in world.players) {
+                player.sendText("$PREFIX Your current world has been deleted. You've been teleported back to the servers spawn.") {
+                    color = Colorization.RED
+                }
                 player.teleportAsync(spawnLocation)
             }
 
@@ -172,7 +190,6 @@ fun addFilesToTarGzSafe(root: File, source: File, tarOut: TarArchiveOutputStream
         source.listFiles()?.forEach { addFilesToTarGzSafe(root, it, tarOut) }
     }
 }
-
 
 private fun exportWorldFolder(record: RecordWorld) {
     val worldFolder = File(Bukkit.getWorldContainer(), record.uniqueId.toString())
