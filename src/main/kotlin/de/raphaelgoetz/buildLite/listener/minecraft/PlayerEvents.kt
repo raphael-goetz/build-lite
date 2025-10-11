@@ -2,6 +2,7 @@ package de.raphaelgoetz.buildLite.listener.minecraft
 
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.listenCancelled
+import de.raphaelgoetz.astralis.schedule.doLater
 import de.raphaelgoetz.astralis.text.communication.CommunicationType
 import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
@@ -15,6 +16,7 @@ import de.raphaelgoetz.buildLite.spawnLocation
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
 import de.raphaelgoetz.buildLite.world.WorldLoader
+
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -35,6 +37,23 @@ fun registerPlayerEvents() {
         player.gameMode = GameMode.CREATIVE
         val cachedPlayer = PlayerCache.getOrInit(player = event.player)
         val location = cachedPlayer.recordPlayer.lastKnownLocation
+
+        for (onlinePlayer in Bukkit.getOnlinePlayers()) {
+            if (onlinePlayer.uniqueId == player.uniqueId) continue
+            onlinePlayer.sendTransText("event.join.message") {
+                type = CommunicationType.SUCCESS
+                resolver = arrayOf(Placeholder.parsed("player", player.name))
+            }
+        }
+        player.sendTransText("event.join.welcome.player") {
+            type = CommunicationType.INFO
+            resolver = arrayOf(Placeholder.parsed("player", player.name))
+            onOpenURL("https://github.com/raphael-goetz/build-lite/issues")
+            onHoverText(adventureText(player.locale().getValue("event.join.welcome.player.hover")) {
+                type = CommunicationType.DEBUG
+            })
+        }
+        event.joinMessage(null)
 
         when (cachedPlayer.recordPlayer.reviewMode) {
             true -> CacheReview.showAll(player)
@@ -60,33 +79,18 @@ fun registerPlayerEvents() {
         if (location == null) {
             event.player.teleportAsync(spawnLocation)
         }
-
-        for (onlinePlayer in Bukkit.getOnlinePlayers()) {
-            if (onlinePlayer.uniqueId == player.uniqueId) continue
-            onlinePlayer.sendTransText("event.join.message") {
-                type = CommunicationType.SUCCESS
-                resolver = arrayOf(Placeholder.parsed("player", player.name))
-            }
-        }
-        player.sendTransText("event.join.welcome.player") {
-            type = CommunicationType.INFO
-            resolver = arrayOf(Placeholder.parsed("player", player.name))
-            onOpenURL("https://github.com/raphael-goetz/build-lite/issues")
-            onHoverText(adventureText(player.locale().getValue("event.join.welcome.player.hover")) {
-                type = CommunicationType.DEBUG
-            })
-        }
-        event.joinMessage(null)
     }
 
     listen<PlayerQuitEvent> { event ->
-        //TODO world does not get unloaded
         val player = event.player
         val location = player.location
+        val world = location.world
 
-        println(player.world.players.isEmpty())
-        if (player.world.players.isEmpty()) {
-            WorldLoader.lazyUnload(world = event.player.world)
+        doLater(5) {
+            println(world.players.isEmpty())
+            if (world.players.isEmpty()) {
+                WorldLoader.lazyUnload(world = world)
+            }
         }
 
         PlayerCache.flush(player)

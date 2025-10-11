@@ -87,10 +87,6 @@ fun Player.actionWorldUpdate(
     sendMessage(adventureText("$PREFIX World '${world.name}' updated successfully.") {
         color = Colorization.LIME
     })
-
-
-    //TODO Check if player is in the same world
-
 }
 
 fun Player.actionUpdateWorldSpawn(recordWorld: RecordWorld) {

@@ -44,7 +44,7 @@ private fun Player.createHomeDialog(): Dialog {
     val nightModeInput = createToggleButton(FIELD_NIGHT_MODE_KEY, "Night Vision", cachedPlayer.recordPlayer.nightMode)
     val reviewModeInput = createToggleButton(FIELD_REVIEW_MODE_KEY, "Reviews", cachedPlayer.recordPlayer.reviewMode)
     val flySpeedInput = DialogInput.numberRange(
-        FIELD_SPEED_KEY, 200, Component.text("Speed"), "%s (Current Speed: %s)", 0.1f, 1f, this.flySpeed, 0.1f
+        FIELD_SPEED_KEY, 200, Component.text("Speed"), "%s (Current Speed: %s)", 0.0f, 1f, this.flySpeed, 0.1f
     )
 
     //Actions
