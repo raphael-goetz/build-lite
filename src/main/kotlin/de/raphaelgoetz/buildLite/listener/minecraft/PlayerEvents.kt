@@ -36,6 +36,23 @@ fun registerPlayerEvents() {
         val cachedPlayer = PlayerCache.getOrInit(player = event.player)
         val location = cachedPlayer.recordPlayer.lastKnownLocation
 
+        for (onlinePlayer in Bukkit.getOnlinePlayers()) {
+            if (onlinePlayer.uniqueId == player.uniqueId) continue
+            onlinePlayer.sendTransText("event.join.message") {
+                type = CommunicationType.SUCCESS
+                resolver = arrayOf(Placeholder.parsed("player", player.name))
+            }
+        }
+        player.sendTransText("event.join.welcome.player") {
+            type = CommunicationType.INFO
+            resolver = arrayOf(Placeholder.parsed("player", player.name))
+            onOpenURL("https://github.com/raphael-goetz/build-lite/issues")
+            onHoverText(adventureText(player.locale().getValue("event.join.welcome.player.hover")) {
+                type = CommunicationType.DEBUG
+            })
+        }
+        event.joinMessage(null)
+
         when (cachedPlayer.recordPlayer.reviewMode) {
             true -> CacheReview.showAll(player)
             false -> CacheReview.hideAll(player)
@@ -60,23 +77,6 @@ fun registerPlayerEvents() {
         if (location == null) {
             event.player.teleportAsync(spawnLocation)
         }
-
-        for (onlinePlayer in Bukkit.getOnlinePlayers()) {
-            if (onlinePlayer.uniqueId == player.uniqueId) continue
-            onlinePlayer.sendTransText("event.join.message") {
-                type = CommunicationType.SUCCESS
-                resolver = arrayOf(Placeholder.parsed("player", player.name))
-            }
-        }
-        player.sendTransText("event.join.welcome.player") {
-            type = CommunicationType.INFO
-            resolver = arrayOf(Placeholder.parsed("player", player.name))
-            onOpenURL("https://github.com/raphael-goetz/build-lite/issues")
-            onHoverText(adventureText(player.locale().getValue("event.join.welcome.player.hover")) {
-                type = CommunicationType.DEBUG
-            })
-        }
-        event.joinMessage(null)
     }
 
     listen<PlayerQuitEvent> { event ->
