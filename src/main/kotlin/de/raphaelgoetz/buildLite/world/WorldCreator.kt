@@ -3,14 +3,12 @@ package de.raphaelgoetz.buildLite.world
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.unregister
 import de.raphaelgoetz.astralis.schedule.doLater
-import org.bukkit.Bukkit
 import org.bukkit.Difficulty
 import org.bukkit.GameRule
 import org.bukkit.World
 import org.bukkit.WorldCreator
 import org.bukkit.event.world.WorldLoadEvent
 import org.bukkit.generator.ChunkGenerator
-import java.io.File
 
 object WorldCreator {
 
@@ -47,15 +45,6 @@ object WorldCreator {
             world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true)
             world.setGameRule(GameRule.DISABLE_RAIDS, true)
             world.setGameRule(GameRule.KEEP_INVENTORY, true)
-
-            val possibleWorldContainers = Bukkit.getWorldContainer().listFiles()
-
-            if (possibleWorldContainers != null) {
-                for (file in possibleWorldContainers) {
-                    if (!file.isDirectory || (file.name != name)) continue
-                    File(file, ".isWorldFolder").createNewFile()
-                }
-            }
         }
 
         worldGenerator.createWorld()

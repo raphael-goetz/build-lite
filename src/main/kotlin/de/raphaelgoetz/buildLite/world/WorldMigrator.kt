@@ -1,5 +1,6 @@
 package de.raphaelgoetz.buildLite.world
 
+import de.raphaelgoetz.buildLite.sql.isSqlWorld
 import org.bukkit.Bukkit
 import org.bukkit.generator.ChunkGenerator
 import java.io.File
@@ -36,11 +37,11 @@ object WorldMigrator {
         val result = mutableListOf<String>()
 
         for (folder in folders) {
-
-            if (folder.name == "world" || folder.name == "world_nether" || folder.name == "world_the_end") continue
+            val name = folder.name
+            if (name == "world" || name == "world_nether" || name == "world_the_end") continue
+            if (name.isSqlWorld()) continue
 
             for (file in folder.listFiles() ?: continue) {
-                if (file.name == ".isWorldFolder") break
                 if (file.name == "level.dat" || file.name == "level_old.dat") {
                     result.add(folder.name)
                     break

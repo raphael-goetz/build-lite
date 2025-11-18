@@ -130,6 +130,20 @@ private fun ResultRow.toRecordWorld() = RecordWorld(
     state = this[SqlWorld.state],
 )
 
+fun String.isSqlWorld(): Boolean {
+    try {
+        val uuid = UUID.fromString(this)
+
+        return transaction {
+            val exists = SqlWorld.selectAll().where { SqlWorld.uuid eq uuid }.singleOrNull()
+            return@transaction exists != null
+        }
+
+    } catch (_: IllegalArgumentException) {
+        return false
+    }
+}
+
 fun getSqlWorld(uuid: UUID): RecordWorld = transaction {
     return@transaction SqlWorld.selectAll().where { SqlWorld.uuid eq uuid }.single().toRecordWorld()
 }
