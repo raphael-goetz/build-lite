@@ -86,7 +86,7 @@ fun Player.createWorldUpdateDialog(record: RecordWorld): Dialog {
 
     val base =
         DialogBase.builder(Component.text("Edit World"))
-            .inputs(listOf(nameInput, groupInput, genOption, stateOptions))
+            .inputs(listOf(groupInput, nameInput, genOption, stateOptions))
             .body(listOf(body))
             .build()
     val type = DialogType.confirmation(yesAction(record), noAction(record))
