@@ -27,8 +27,13 @@ fun Player.openWarpMenu(worldUUID: UUID? = null) {
         publicWarps = publicWarps.filter { it.worldUuid == worldUUID }
     }
 
-    val privateClicks = privateWarps.map { createWarpDisplayItem(it) }
-    val publicClicks = publicWarps.map { createWarpDisplayItem(it) }
+    val privateClicks = privateWarps
+        .sortedBy { it.name }
+        .map { createWarpDisplayItem(it) }
+    val publicClicks = publicWarps
+        .sortedBy { it.name }
+        .map { createWarpDisplayItem(it) }
+
     val clicks = privateClicks + publicClicks
 
     openTransPageInventory(

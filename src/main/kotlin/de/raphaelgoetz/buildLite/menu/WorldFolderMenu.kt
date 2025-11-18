@@ -21,8 +21,14 @@ import org.bukkit.entity.Player
 
 fun Player.openWorldFolderMenu() {
     closeDialog()
-    val favorites = getPermittedFavoriteWorlds().map { createWorldDisplayItem(it) }
-    val folders = getPermittedWorlds().map { createWorldFolderItem(it) }
+    val favorites = getPermittedFavoriteWorlds()
+        .sortedBy { it.name }
+        .map { createWorldDisplayItem(it) }
+
+    val folders = getPermittedWorlds()
+        .sortedBy { it.group }
+        .map { createWorldFolderItem(it) }
+
     val clicks = favorites + folders
 
     openTransPageInventory(

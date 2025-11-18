@@ -21,6 +21,7 @@ fun Player.openPlayerMenu() {
     val clicks = Bukkit
         .getOnlinePlayers()
         .filter { uniqueId != it.uniqueId }
+        .sortedBy { it.name }
         .map { createPlayerDisplayItem(it) }
 
     openTransPageInventory(
