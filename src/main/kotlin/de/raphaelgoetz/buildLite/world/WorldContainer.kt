@@ -4,9 +4,9 @@ import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.getAccessibleSqlWorlds
 import de.raphaelgoetz.buildLite.sql.getAllSqlWorlds
 import de.raphaelgoetz.buildLite.sql.hasSqlPlayerFavorite
+import de.raphaelgoetz.buildLite.sql.isSqlWorld
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import java.io.File
 
 object WorldContainer {
 
@@ -15,7 +15,7 @@ object WorldContainer {
         val acceptableWorlds = mutableSetOf<String>()
 
         Bukkit.getWorldContainer().listFiles()?.forEach { folder ->
-            if (folder.isWorldFolder) {
+            if (folder.name.isSqlWorld()) {
                 acceptableWorlds.add(folder.name)
             }
         }
@@ -28,7 +28,7 @@ object WorldContainer {
         val acceptableWorlds = mutableSetOf<String>()
 
         Bukkit.getWorldContainer().listFiles()?.forEach { folder ->
-            if (folder.isWorldFolder) {
+            if (folder.name.isSqlWorld()) {
                 acceptableWorlds.add(folder.name)
             }
         }
@@ -58,8 +58,5 @@ object WorldContainer {
 
     val worlds: List<RecordWorld>
         get() = getRegisteredWorlds()
-
-    private val File.isWorldFolder: Boolean
-        get() = isDirectory && File(this, ".isWorldFolder").exists()
 
 }

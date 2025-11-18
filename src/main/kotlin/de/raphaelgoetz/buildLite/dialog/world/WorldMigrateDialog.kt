@@ -84,7 +84,7 @@ private fun Player.createWorldMigrationDialog(initialName: String): Dialog {
     val body = DialogBody.plainMessage(Component.text("Only letters (A–Z, a–z) and numbers are allowed. Your input will automatically be converted to lowercase when saved."))
 
     val base = DialogBase.builder(Component.text("Create World"))
-        .inputs(listOf(nameInput, groupInput, genOption, stateOptions)).body(listOf(body)).build()
+        .inputs(listOf(groupInput, nameInput, genOption, stateOptions)).body(listOf(body)).build()
     val type = DialogType.confirmation(yesAction(initialName = initialName), noAction())
 
     return Dialog.create { factory ->
