@@ -37,7 +37,8 @@ fun Player.createWorldFolderItem(worldFolder: WorldFolder): SmartClick {
         newPlayerProfile.setTextures(playerTextures)
         playerProfile = newPlayerProfile
 
-        val description = getFolderDescription(worldFolder.worlds)
+        val sortedList = worldFolder.worlds.sortedBy { it.group }
+        val description = getFolderDescription(sortedList)
         this.lore(description)
     }
 

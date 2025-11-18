@@ -18,7 +18,10 @@ import org.bukkit.entity.Player
 
 fun Player.openWorldMigrationMenu() {
     closeDialog()
-    val clicks = WorldMigrator.detect().map { createWorldMigrationItem(it) }
+    val clicks = WorldMigrator
+        .detect()
+        .sortedBy { it }
+        .map { createWorldMigrationItem(it) }
 
     openTransPageInventory(
         key = "menu.world_migration.title",

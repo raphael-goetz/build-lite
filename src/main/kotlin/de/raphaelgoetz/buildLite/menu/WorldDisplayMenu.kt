@@ -17,7 +17,9 @@ import org.bukkit.entity.Player
 
 fun Player.openWorldDisplayMenu(folder: WorldFolder) {
     closeDialog()
-    val worlds = folder.worlds.map { createWorldDisplayItem(it) }
+    val worlds = folder.worlds
+        .sortedBy { it.name }
+        .map { createWorldDisplayItem(it) }
 
     openTransPageInventory(
         key = "menu.world_display.title",
