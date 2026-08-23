@@ -3,6 +3,8 @@ package de.raphaelgoetz.buildLite.listener.minecraft
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.listenCancelled
 import de.raphaelgoetz.astralis.schedule.doLater
+import de.raphaelgoetz.astralis.schedule.doNow
+import de.raphaelgoetz.astralis.schedule.doNowAsync
 import de.raphaelgoetz.astralis.text.communication.CommunicationType
 import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
@@ -12,9 +14,9 @@ import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
-import de.raphaelgoetz.buildLite.spawnLocation
-import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
-import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
+import de.raphaelgoetz.buildLite.buildLiteInstance
+import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
+import de.raphaelgoetz.buildLite.world.OVERWORLD_UUID
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -35,8 +37,6 @@ fun registerPlayerEvents() {
     listen<PlayerJoinEvent> { event ->
         val player = event.player
         player.gameMode = GameMode.CREATIVE
-        val cachedPlayer = PlayerCache.getOrInit(player = event.player)
-        val location = cachedPlayer.recordPlayer.lastKnownLocation
 
         for (onlinePlayer in Bukkit.getOnlinePlayers()) {
             if (onlinePlayer.uniqueId == player.uniqueId) continue
@@ -55,29 +55,35 @@ fun registerPlayerEvents() {
         }
         event.joinMessage(null)
 
-        when (cachedPlayer.recordPlayer.reviewMode) {
-            true -> CacheReview.showAll(player)
-            false -> CacheReview.hideAll(player)
-        }
+        // DB lookups (player record + last-known-world) happen off the main thread.
+        // World creation/teleport and entity visibility touch Bukkit APIs that must
+        // run on the main thread, so those are scheduled back via doNow.
+        doNowAsync {
+            val cachedPlayer = PlayerCache.getOrInit(player)
+            val location = cachedPlayer.recordPlayer.lastKnownLocation
+            val isOverworld = location?.worldUuid == OVERWORLD_UUID
+            val world = if (location != null && !isOverworld) {
+                location.worldUuid.toString().toSqlWorldOrNull()
+            } else null
 
-        // This will teleport the player to his last known location
-        location?.let {
-            var generator: WorldGenerator? = null
-            for (world in worlds) {
-                if (location.worldUuid == world.uniqueId) {
-                    generator = world.generator
-                    break
+            doNow {
+                if (!player.isOnline) return@doNow
+
+                when (cachedPlayer.recordPlayer.reviewMode) {
+                    true -> CacheReview.showAll(player)
+                    false -> CacheReview.hideAll(player)
+                }
+
+                // This will teleport the player to his last known location.
+                // Only if the match was found. Then the world is probably not existing anymore
+                if (location != null && isOverworld) {
+                    WorldLoader.lazyTeleportOverworld(location, player)
+                } else if (location != null && world != null) {
+                    WorldLoader.lazyTeleport(location, world.generator, player)
+                } else if (location == null) {
+                    player.teleportAsync(buildLiteInstance().spawnLocation)
                 }
             }
-
-            //Only if the match was found. Then the world is probably not existing anymore
-            generator?.let {
-                WorldLoader.lazyTeleport(location, it, event.player)
-            }
-        }
-
-        if (location == null) {
-            event.player.teleportAsync(spawnLocation)
         }
     }
 
@@ -87,14 +93,15 @@ fun registerPlayerEvents() {
         val world = location.world
 
         doLater(5) {
-            println(world.players.isEmpty())
             if (world.players.isEmpty()) {
                 WorldLoader.lazyUnload(world = world)
             }
         }
 
         PlayerCache.flush(player)
-        player.actionUpdateLastLocation(location)
+        doNowAsync {
+            player.actionUpdateLastLocation(location)
+        }
 
         event.quitMessage(null)
         for (onlinePlayer in Bukkit.getOnlinePlayers()) {
@@ -125,13 +132,30 @@ fun registerPlayerEvents() {
     listen<PlayerTeleportEvent> { playerTeleportEvent ->
         val player = playerTeleportEvent.player
         val targetWorldName = playerTeleportEvent.to.world.name
+        val fromLocation = playerTeleportEvent.from
 
-        //TODO: improve this handling -> async and its separate query
-        for (world in worlds) {
-            if (world.uniqueId.toString() != targetWorldName) continue
-            if (player.hasWorldEnterPermission(world.name, world.group)) continue
-            player.teleportAsync(playerTeleportEvent.from)
-            break
+        // hasWorldEnterPermission (permission check + message) and teleportAsync
+        // are all safe to call off the main thread, so only the DB lookup needs
+        // to move -- no doNow hop back required here.
+        doNowAsync {
+            val world = targetWorldName.toSqlWorldOrNull() ?: return@doNowAsync
+            if (!player.hasWorldEnterPermission(world.name, world.group)) {
+                // If "from" is the same forbidden world as "to" (e.g. on join,
+                // when the player's vanilla position and their last-known DB
+                // location both already sit in a world they've since lost
+                // access to), correcting back to "from" is itself a teleport
+                // into that same forbidden world -- which re-triggers this
+                // listener and denies again, forever, flooding teleport packets
+                // until the player gets kicked. Fall back to a known-safe
+                // location instead of chasing a "from" that isn't safe either.
+                val destination = if (fromLocation.world.name == targetWorldName) {
+                    buildLiteInstance().spawnLocation
+                } else {
+                    fromLocation
+                }
+
+                player.teleportAsync(destination)
+            }
         }
     }
 

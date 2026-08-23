@@ -3,37 +3,24 @@ package de.raphaelgoetz.buildLite.world
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.getAccessibleSqlWorlds
 import de.raphaelgoetz.buildLite.sql.getAllSqlWorlds
-import de.raphaelgoetz.buildLite.sql.hasSqlPlayerFavorite
-import de.raphaelgoetz.buildLite.sql.isSqlWorld
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerFavoriteWorldUuids
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 object WorldContainer {
 
+    private fun existingWorldFolderNames(): Set<String> =
+        Bukkit.getWorldContainer().listFiles()?.mapTo(mutableSetOf()) { it.name } ?: emptySet()
+
     private fun getRegisteredWorlds(): List<RecordWorld> {
-        val sqlWorlds = getAllSqlWorlds()
-        val acceptableWorlds = mutableSetOf<String>()
-
-        Bukkit.getWorldContainer().listFiles()?.forEach { folder ->
-            if (folder.name.isSqlWorld()) {
-                acceptableWorlds.add(folder.name)
-            }
-        }
-
-        return sqlWorlds.filter { it.uniqueId.toString() in acceptableWorlds }
+        val folderNames = existingWorldFolderNames()
+        return getAllSqlWorlds().filter { it.uniqueId.toString() in folderNames }
     }
 
     fun Player.getPermittedWorlds(): List<WorldFolder> {
-        val sqlWorlds = getAccessibleSqlWorlds()
-        val acceptableWorlds = mutableSetOf<String>()
+        val folderNames = existingWorldFolderNames()
+        val worlds = getAccessibleSqlWorlds().filter { it.uniqueId.toString() in folderNames }
 
-        Bukkit.getWorldContainer().listFiles()?.forEach { folder ->
-            if (folder.name.isSqlWorld()) {
-                acceptableWorlds.add(folder.name)
-            }
-        }
-
-        val worlds = sqlWorlds.filter { it.uniqueId.toString() in acceptableWorlds }
         return worlds
             .groupBy { it.group }
             .map { (group, groupedWorlds) ->
@@ -41,19 +28,13 @@ object WorldContainer {
             }
     }
 
-    fun Player.getPermittedFavoriteWorlds(): List<RecordWorld> {
-        val worldFolders = getPermittedWorlds()
-        val acceptableWorlds = mutableSetOf<RecordWorld>()
+    fun Player.getPermittedFavoriteWorlds(worldFolders: List<WorldFolder> = getPermittedWorlds()): List<RecordWorld> {
+        val favoriteUuids = getSqlPlayerFavoriteWorldUuids()
 
-        worldFolders.forEach { folder ->
-            folder.worlds.forEach { world ->
-                if (hasSqlPlayerFavorite(world.uniqueId)) {
-                    acceptableWorlds.add(world)
-                }
-            }
-        }
-
-        return acceptableWorlds.toList()
+        return worldFolders
+            .flatMap { it.worlds }
+            .filter { it.uniqueId in favoriteUuids }
+            .distinct()
     }
 
     val worlds: List<RecordWorld>

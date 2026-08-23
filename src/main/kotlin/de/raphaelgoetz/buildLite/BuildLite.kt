@@ -14,8 +14,11 @@ import de.raphaelgoetz.buildLite.sql.SqlPlayerWarp
 import de.raphaelgoetz.buildLite.sql.SqlWorld
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -24,18 +27,20 @@ import java.util.logging.Level
 
 const val PREFIX = "[build-lite] >"
 
-lateinit var spawnLocation: Location
-    private set
-
-lateinit var BuildLiteInstance: BuildLite
-    private set
+/**
+ * Bukkit already keeps a single canonical instance per plugin class, retrievable
+ * via JavaPlugin.getPlugin(). No need for a hand-rolled mutable global on top of it.
+ */
+fun buildLiteInstance(): BuildLite = JavaPlugin.getPlugin(BuildLite::class.java)
 
 class BuildLite : Astralis() {
     var server: FileServer? = null
+    private var dataSource: HikariDataSource? = null
+
+    lateinit var spawnLocation: Location
+        private set
 
     override fun enable() {
-        BuildLiteInstance = this
-
         saveDefaultConfig()
 
         val pluginConfig = PluginConfig(
@@ -51,10 +56,25 @@ class BuildLite : Astralis() {
             config.getDouble("location.pitch", 0.0).toFloat(),
         )
 
-        Database.connect(
-            url = pluginConfig.dbUrl,
-            driver = pluginConfig.dbDriver
-        )
+        // Database.connect(url, driver) opens a brand new JDBC connection for every
+        // transaction{} block and closes it afterward. A pooled/persistent connection
+        // avoids that per-query connect/disconnect cost. SQLite only supports a single
+        // writer, so the pool is intentionally sized to 1 rather than left at Hikari's
+        // default of 10 (which would just serialize on SQLite's file lock anyway).
+        val hikariConfig = HikariConfig().apply {
+            jdbcUrl = pluginConfig.dbUrl
+            driverClassName = pluginConfig.dbDriver
+            maximumPoolSize = 1
+            connectionInitSql = "PRAGMA journal_mode=WAL;"
+
+            // Most callers run on the main server thread. Hikari's default 30s
+            // connectionTimeout would block it that long if the DB is unreachable,
+            // risking the Paper watchdog killing the server. Fail fast instead.
+            connectionTimeout = 3_000
+        }
+        dataSource = HikariDataSource(hikariConfig)
+
+        Database.connect(dataSource!!)
 
         transaction {
             SchemaUtils.create(
@@ -62,7 +82,7 @@ class BuildLite : Astralis() {
             )
         }
 
-        spawnLocation = Location(
+        this.spawnLocation = Location(
             Bukkit.getWorld("world"),
             pluginConfig.spawnX,
             pluginConfig.spawnY,
@@ -76,14 +96,7 @@ class BuildLite : Astralis() {
             server?.start()
         }
 
-        try {
-            PlayerProfileCache.init()
-        } catch (e: SocketTimeoutException) {
-            PlayerProfileCache.authAvailable = false
-            Bukkit.getLogger().log(
-                Level.WARNING, "Could not initialize Player profile. Minecraft Auth Server are probably offline", e
-            )
-        }
+        PlayerProfileCache.init()
 
         registerListener()
         registerCommands()
@@ -96,5 +109,7 @@ class BuildLite : Astralis() {
         for (world in Bukkit.getWorlds()) {
             WorldLoader.lazyUnload(world)
         }
+
+        dataSource?.close()
     }
 }

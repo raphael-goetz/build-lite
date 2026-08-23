@@ -32,11 +32,11 @@ import org.bukkit.inventory.meta.SkullMeta
 import java.net.URI
 import java.util.*
 
-fun Player.createWorldDisplayItem(recordWorld: RecordWorld): SmartClick {
-    val loadableWorld = LoadableWorld(recordWorld.uniqueId)
-    val credits = loadableWorld.getSqlPlayerCredits()
-
-    val isFavorite = hasSqlPlayerFavorite(recordWorld.uniqueId)
+fun Player.createWorldDisplayItem(
+    recordWorld: RecordWorld,
+    credits: List<RecordPlayerCredit> = LoadableWorld(recordWorld.uniqueId).getSqlPlayerCredits(),
+    isFavorite: Boolean = hasSqlPlayerFavorite(recordWorld.uniqueId),
+): SmartClick {
     val name = if (isFavorite) "★ " + recordWorld.name.capitalizeFirst() + " ★" else recordWorld.name.capitalizeFirst()
     val item = createSmartItem<SkullMeta>(
         name = name,
@@ -59,7 +59,7 @@ fun Player.createWorldDisplayItem(recordWorld: RecordWorld): SmartClick {
         click.isCancelled = true
 
         if (click.click == ClickType.MIDDLE) {
-            openReviewMenu(loadableWorld.uniqueId)
+            openReviewMenu(recordWorld.uniqueId)
             return@SmartClick
         }
 

@@ -4,6 +4,7 @@ import de.raphaelgoetz.buildLite.sql.RecordPlayer
 import de.raphaelgoetz.buildLite.sql.initSqlPlayer
 import org.bukkit.entity.Player
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 data class CachePlayer(
     val playerUUID: UUID, val recordPlayer: RecordPlayer
@@ -11,7 +12,9 @@ data class CachePlayer(
 
 object PlayerCache {
 
-    private val players = HashMap<UUID, CachePlayer>()
+    // Accessed from both the main thread and async tasks now that callers fetch
+    // player data off-thread before rendering, so this must be a thread-safe map.
+    private val players = ConcurrentHashMap<UUID, CachePlayer>()
 
     fun all() = players.values.toList()
 
