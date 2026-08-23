@@ -2,27 +2,28 @@ package de.raphaelgoetz.buildLite.sql
 
 import de.raphaelgoetz.buildLite.world.LoadableLocation
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.util.UUID
 
 object SqlPlayerReview : Table("player_reviews") {
     val id = integer("id").autoIncrement()
 
-    val creatorUuid = uuid("player_uuid")
-    val reviewerUuid = uuid("reviewer_uuid").nullable()
+    val creatorUuid = javaUUID("player_uuid")
+    val reviewerUuid = javaUUID("reviewer_uuid").nullable()
 
     val title = varchar("title", 255)
     val description = varchar("description", 255)
 
     // Last Known Location
-    val locationWorld = uuid("review_world")
+    val locationWorld = javaUUID("review_world")
     val locationX = double("review_x")
     val locationY = double("review_y")
     val locationZ = double("review_z")

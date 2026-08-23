@@ -3,15 +3,17 @@ package de.raphaelgoetz.buildLite.sql
 import de.raphaelgoetz.buildLite.sql.SqlPlayer.uuid
 import de.raphaelgoetz.buildLite.world.LoadableLocation
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.util.UUID
 
 object SqlPlayer : Table("players") {
-    val uuid = uuid("id")
+    val uuid = javaUUID("id")
 
     // Modes
     val nightMode = bool("night_mode")
@@ -19,7 +21,7 @@ object SqlPlayer : Table("players") {
     val reviewMode = bool("review_mode")
 
     // Last Known Location
-    val locationWorld = uuid("spawn_world").nullable()
+    val locationWorld = javaUUID("spawn_world").nullable()
     val locationX = double("spawn_x").nullable()
     val locationY = double("spawn_y").nullable()
     val locationZ = double("spawn_z").nullable()
