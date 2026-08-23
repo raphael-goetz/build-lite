@@ -1,0 +1,20 @@
+build:
+  maxIssues: 0
+
+style:
+  ForbiddenMethodCall:
+    active: true
+    methods:
+      - 'reason:use Bukkit.getLogger() instead of println for plugin output ::kotlin.io.println'
+      - 'reason:use Bukkit.getLogger() instead of print for plugin output ::kotlin.io.print'
+
+potential-bugs:
+  IgnoredReturnValue:
+    active: true
+    restrictToConfig: false
+  UnconditionalJumpStatementInLoop:
+    active: true
+
+exceptions:
+  SwallowedException:
+    active: true

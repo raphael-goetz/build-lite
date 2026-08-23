@@ -1,6 +1,6 @@
 package de.raphaelgoetz.buildLite.entity
 
-import de.raphaelgoetz.buildLite.BuildLiteInstance
+import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
 import de.raphaelgoetz.buildLite.player.createPlayerComponent
 import de.raphaelgoetz.buildLite.player.createPlayerHead
@@ -38,19 +38,18 @@ data class Review(
     }
 
     fun destroy() {
-        println("trying to delete the entity")
         textDisplay?.remove()
     }
 
     fun showFor(player: Player) {
         textDisplay?.let { textDisplay ->
-            player.showEntity(BuildLiteInstance, textDisplay)
+            player.showEntity(buildLiteInstance(), textDisplay)
         }
     }
 
     fun hideFor(player: Player) {
         textDisplay?.let { textDisplay ->
-            player.hideEntity(BuildLiteInstance, textDisplay)
+            player.hideEntity(buildLiteInstance(), textDisplay)
         }
     }
 

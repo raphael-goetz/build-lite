@@ -1,5 +1,7 @@
 package de.raphaelgoetz.buildLite.menu
 
+import de.raphaelgoetz.astralis.schedule.doNow
+import de.raphaelgoetz.astralis.schedule.doNowAsync
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
 import de.raphaelgoetz.astralis.ui.data.InventorySlots
@@ -11,15 +13,41 @@ import de.raphaelgoetz.buildLite.item.createPageRightItem
 import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
+import de.raphaelgoetz.buildLite.sql.RecordPlayerCredit
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerCreditsFor
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerFavoriteWorldUuids
 import de.raphaelgoetz.buildLite.world.WorldFolder
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import java.util.UUID
 
 fun Player.openWorldDisplayMenu(folder: WorldFolder) {
     closeDialog()
+
+    doNowAsync {
+        val creditsByWorld = getSqlPlayerCreditsFor(folder.worlds.map { it.uniqueId })
+        val favoriteUuids = getSqlPlayerFavoriteWorldUuids()
+
+        doNow {
+            if (isOnline) renderWorldDisplayMenu(folder, creditsByWorld, favoriteUuids)
+        }
+    }
+}
+
+private fun Player.renderWorldDisplayMenu(
+    folder: WorldFolder,
+    creditsByWorld: Map<UUID, List<RecordPlayerCredit>>,
+    favoriteUuids: Set<UUID>,
+) {
     val worlds = folder.worlds
         .sortedBy { it.name }
-        .map { createWorldDisplayItem(it) }
+        .map {
+            createWorldDisplayItem(
+                it,
+                credits = creditsByWorld[it.uniqueId] ?: emptyList(),
+                isFavorite = it.uniqueId in favoriteUuids,
+            )
+        }
 
     openTransPageInventory(
         key = "menu.world_display.title",

@@ -3,13 +3,14 @@ package de.raphaelgoetz.buildLite.item
 import de.raphaelgoetz.astralis.items.builder.SmartLoreBuilder
 import de.raphaelgoetz.astralis.items.createSmartItem
 import de.raphaelgoetz.astralis.items.data.InteractionType
+import de.raphaelgoetz.astralis.schedule.doNow
+import de.raphaelgoetz.astralis.schedule.doNowAsync
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.dialog.review.showReviewDeletionDialog
 import de.raphaelgoetz.buildLite.sql.RecordPlayerReview
 import de.raphaelgoetz.buildLite.sql.submitReview
-import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
-import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
+import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
 import de.raphaelgoetz.buildLite.world.WorldLoader
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -35,19 +36,15 @@ fun Player.createReviewDisplayItem(record: RecordPlayerReview): SmartClick {
         }
 
         if (click.isLeftClick) {
+            doNowAsync {
+                //Only if the match was found. Then the world is probably not existing anymore
+                val world = record.loadableLocation.worldUuid.toString().toSqlWorldOrNull() ?: return@doNowAsync
 
-            var generator: WorldGenerator? = null
-            for (world in worlds) {
-                if (record.loadableLocation.worldUuid == world.uniqueId) {
-                    generator = world.generator
-                    break
+                doNow {
+                    if (!isOnline) return@doNow
+                    closeInventory()
+                    WorldLoader.lazyTeleport(record.loadableLocation, world.generator, this)
                 }
-            }
-
-            //Only if the match was found. Then the world is probably not existing anymore
-            generator?.let {
-                closeInventory()
-                WorldLoader.lazyTeleport(record.loadableLocation, it, this)
             }
 
             return@SmartClick

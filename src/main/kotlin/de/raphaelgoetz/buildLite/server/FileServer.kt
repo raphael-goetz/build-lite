@@ -15,7 +15,6 @@ class FileServer(val config: PluginConfig) {
         if (server != null) throw IllegalStateException("Server is already running")
 
         val baseDir = File(Bukkit.getPluginsFolder(), "build-lite/export").apply { mkdirs() }
-        config
         server = HttpServer.create(InetSocketAddress(config.host, config.port), 0).apply {
             createContext("/uuid") { exchange ->
                 try {

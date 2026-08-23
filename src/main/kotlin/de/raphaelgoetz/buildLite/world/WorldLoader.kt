@@ -9,7 +9,7 @@ import de.raphaelgoetz.buildLite.PREFIX
 import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.config.toJson
 import de.raphaelgoetz.buildLite.config.toMeta
-import de.raphaelgoetz.buildLite.spawnLocation
+import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerCredits
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerFavorite
@@ -80,7 +80,7 @@ object WorldLoader {
 
     fun lazyUnload(world: World) {
         for (player in world.players) {
-            player.teleportAsync(spawnLocation)
+            player.teleportAsync(buildLiteInstance().spawnLocation)
             player.sendText("$PREFIX Your current world has been unloaded. You've been teleported back to the servers spawn.") {
                 color = Colorization.RED
             }
@@ -98,7 +98,7 @@ object WorldLoader {
                 player.sendText("$PREFIX Your current world has been deleted. You've been teleported back to the servers spawn.") {
                     color = Colorization.RED
                 }
-                player.teleportAsync(spawnLocation)
+                player.teleportAsync(buildLiteInstance().spawnLocation)
             }
 
             Bukkit.unloadWorld(world, false)
@@ -140,11 +140,20 @@ object WorldLoader {
 }
 
 private fun File.deleteFilesInsideFolder() {
-    if (!this.isDirectory() && this.delete()) return
-    val files = this.listFiles()
-    if (files == null || this.delete()) return
-    for (content in files) if (!content.delete()) content.deleteFilesInsideFolder()
-    if (!this.delete()) this.deleteFilesInsideFolder()
+    if (!this.isDirectory) {
+        if (!this.delete()) {
+            Bukkit.getLogger().warning("Could not delete file: ${this.absolutePath}")
+        }
+        return
+    }
+
+    for (content in this.listFiles() ?: emptyArray()) {
+        content.deleteFilesInsideFolder()
+    }
+
+    if (!this.delete()) {
+        Bukkit.getLogger().warning("Could not delete directory: ${this.absolutePath}")
+    }
 }
 
 fun createTarGz(sourceDir: File, outputFile: File) {
@@ -162,12 +171,12 @@ fun addFilesToTarGzSafe(root: File, source: File, tarOut: TarArchiveOutputStream
     if (source.isFile) {
         // Skip session.lock and any other locked/system files
         if (source.name.equals("session.lock", ignoreCase = true)) {
-            println("Skipping locked file: ${source.absolutePath}")
+            Bukkit.getLogger().info("Skipping locked file: ${source.absolutePath}")
             return
         }
 
         if (source.name.equals(".isWorldFolder", ignoreCase = true)) {
-            println("Skipping identifier file: ${source.absolutePath}")
+            Bukkit.getLogger().info("Skipping identifier file: ${source.absolutePath}")
             return
         }
 

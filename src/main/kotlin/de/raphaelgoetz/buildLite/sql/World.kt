@@ -147,3 +147,15 @@ fun String.isSqlWorld(): Boolean {
 fun getSqlWorld(uuid: UUID): RecordWorld = transaction {
     return@transaction SqlWorld.selectAll().where { SqlWorld.uuid eq uuid }.single().toRecordWorld()
 }
+
+fun String.toSqlWorldOrNull(): RecordWorld? {
+    val uuid = try {
+        UUID.fromString(this)
+    } catch (_: IllegalArgumentException) {
+        return null
+    }
+
+    return transaction {
+        SqlWorld.selectAll().where { SqlWorld.uuid eq uuid }.singleOrNull()?.toRecordWorld()
+    }
+}

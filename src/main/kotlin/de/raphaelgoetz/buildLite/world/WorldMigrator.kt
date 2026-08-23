@@ -26,7 +26,10 @@ object WorldMigrator {
             }
 
             val newFolder = File(folder.parentFile, newUuid.toString())
-            folder.renameTo(newFolder)
+            if (!folder.renameTo(newFolder)) {
+                Bukkit.getLogger().warning("Could not migrate world folder: ${folder.absolutePath} -> ${newFolder.absolutePath}")
+                return
+            }
 
             WorldCreator.create(newUuid.toString(), generator)
         }

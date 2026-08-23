@@ -3,6 +3,7 @@ plugins {
     id "com.gradleup.shadow"  version "9.6.1"
     id 'org.jetbrains.kotlin.jvm' version "2.4.10"
     id "xyz.jpenilla.run-paper" version "3.0.2"
+    id "io.gitlab.arturbosch.detekt" version "1.23.7"
 }
 
 def tagVersion = System.getenv('VERSION')
@@ -38,6 +39,16 @@ dependencies {
 
     implementation('org.xerial:sqlite-jdbc:3.53.2.1')
     implementation 'org.apache.commons:commons-compress:1.28.0'
+    implementation 'com.zaxxer:HikariCP:6.2.1'
+
+    testImplementation(platform('org.junit:junit-bom:5.11.4'))
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'io.mockk:mockk:1.13.13'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 tasks.named("runServer") {
@@ -50,6 +61,12 @@ def targetJavaVersion = 21
 
 kotlin {
     jvmToolchain(targetJavaVersion)
+}
+
+detekt {
+    buildUponDefaultConfig = false
+    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+    source.setFrom(files("src/main/kotlin"))
 }
 
 tasks.named("build") {
