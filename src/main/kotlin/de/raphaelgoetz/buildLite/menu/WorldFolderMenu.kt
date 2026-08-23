@@ -21,11 +21,13 @@ import org.bukkit.entity.Player
 
 fun Player.openWorldFolderMenu() {
     closeDialog()
-    val favorites = getPermittedFavoriteWorlds()
+    val permittedWorlds = getPermittedWorlds()
+
+    val favorites = getPermittedFavoriteWorlds(permittedWorlds)
         .sortedBy { it.name }
         .map { createWorldDisplayItem(it) }
 
-    val folders = getPermittedWorlds()
+    val folders = permittedWorlds
         .sortedBy { it.group }
         .map { createWorldFolderItem(it) }
 

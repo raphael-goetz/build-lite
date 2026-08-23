@@ -55,6 +55,10 @@ fun Player.hasSqlPlayerFavorite(worldUuid: UUID): Boolean = transaction {
     return@transaction exists != null
 }
 
+fun Player.getSqlPlayerFavoriteWorldUuids(): Set<UUID> = transaction {
+    SqlPlayerFavorite.selectAll().where { player_uuid eq uniqueId }.map { it[world_uuid] }.toSet()
+}
+
 fun Player.getSqlPlayerFavorite(worldUuid: UUID): RecordPlayerFavorite = transaction {
     val record = SqlPlayerFavorite.selectAll().where {
         (player_uuid eq uniqueId) and (world_uuid eq worldUuid)
