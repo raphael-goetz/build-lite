@@ -2,6 +2,7 @@ package de.raphaelgoetz.buildLite.sql
 
 import de.raphaelgoetz.buildLite.world.LoadableWorld
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -61,6 +62,23 @@ fun RecordWorld.getSqlPlayerCredits(): List<RecordPlayerCredit> = transaction {
                 worldUuid = record[SqlPlayerCredit.worldUUID],
             )
         }
+}
+
+fun getSqlPlayerCreditsFor(worldUuids: Collection<UUID>): Map<UUID, List<RecordPlayerCredit>> {
+    if (worldUuids.isEmpty()) return emptyMap()
+
+    return transaction {
+        SqlPlayerCredit
+            .selectAll()
+            .where { SqlPlayerCredit.worldUUID inList worldUuids }
+            .map { record ->
+                RecordPlayerCredit(
+                    playerUuid = record[SqlPlayerCredit.playerUUID],
+                    worldUuid = record[SqlPlayerCredit.worldUUID],
+                )
+            }
+            .groupBy { it.worldUuid }
+    }
 }
 
 fun RecordWorld.deleteSqlPlayerCredits() = transaction {

@@ -12,7 +12,7 @@ import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
-import de.raphaelgoetz.buildLite.spawnLocation
+import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
@@ -68,7 +68,7 @@ fun registerPlayerEvents() {
         }
 
         if (location == null) {
-            event.player.teleportAsync(spawnLocation)
+            event.player.teleportAsync(buildLiteInstance().spawnLocation)
         }
     }
 

@@ -11,15 +11,26 @@ import de.raphaelgoetz.buildLite.item.createPageRightItem
 import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerCreditsFor
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerFavoriteWorldUuids
 import de.raphaelgoetz.buildLite.world.WorldFolder
 import org.bukkit.Material
 import org.bukkit.entity.Player
 
 fun Player.openWorldDisplayMenu(folder: WorldFolder) {
     closeDialog()
+    val creditsByWorld = getSqlPlayerCreditsFor(folder.worlds.map { it.uniqueId })
+    val favoriteUuids = getSqlPlayerFavoriteWorldUuids()
+
     val worlds = folder.worlds
         .sortedBy { it.name }
-        .map { createWorldDisplayItem(it) }
+        .map {
+            createWorldDisplayItem(
+                it,
+                credits = creditsByWorld[it.uniqueId] ?: emptyList(),
+                isFavorite = it.uniqueId in favoriteUuids,
+            )
+        }
 
     openTransPageInventory(
         key = "menu.world_display.title",

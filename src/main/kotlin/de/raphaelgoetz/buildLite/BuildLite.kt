@@ -18,25 +18,27 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 const val PREFIX = "[build-lite] >"
 
-lateinit var spawnLocation: Location
-    private set
-
-lateinit var BuildLiteInstance: BuildLite
-    private set
+/**
+ * Bukkit already keeps a single canonical instance per plugin class, retrievable
+ * via JavaPlugin.getPlugin(). No need for a hand-rolled mutable global on top of it.
+ */
+fun buildLiteInstance(): BuildLite = JavaPlugin.getPlugin(BuildLite::class.java)
 
 class BuildLite : Astralis() {
     var server: FileServer? = null
     private var dataSource: HikariDataSource? = null
 
-    override fun enable() {
-        BuildLiteInstance = this
+    lateinit var spawnLocation: Location
+        private set
 
+    override fun enable() {
         saveDefaultConfig()
 
         val pluginConfig = PluginConfig(
@@ -78,7 +80,7 @@ class BuildLite : Astralis() {
             )
         }
 
-        spawnLocation = Location(
+        this.spawnLocation = Location(
             Bukkit.getWorld("world"),
             pluginConfig.spawnX,
             pluginConfig.spawnY,

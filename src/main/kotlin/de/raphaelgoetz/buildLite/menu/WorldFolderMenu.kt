@@ -13,6 +13,7 @@ import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
 import de.raphaelgoetz.buildLite.item.createWorldFolderItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerCreditsFor
 import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedFavoriteWorlds
 import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedWorlds
 import org.bukkit.Material
@@ -22,10 +23,12 @@ import org.bukkit.entity.Player
 fun Player.openWorldFolderMenu() {
     closeDialog()
     val permittedWorlds = getPermittedWorlds()
+    val favoriteWorlds = getPermittedFavoriteWorlds(permittedWorlds)
+    val creditsByWorld = getSqlPlayerCreditsFor(favoriteWorlds.map { it.uniqueId })
 
-    val favorites = getPermittedFavoriteWorlds(permittedWorlds)
+    val favorites = favoriteWorlds
         .sortedBy { it.name }
-        .map { createWorldDisplayItem(it) }
+        .map { createWorldDisplayItem(it, credits = creditsByWorld[it.uniqueId] ?: emptyList(), isFavorite = true) }
 
     val folders = permittedWorlds
         .sortedBy { it.group }

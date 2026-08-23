@@ -9,7 +9,7 @@ import de.raphaelgoetz.buildLite.PREFIX
 import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.config.toJson
 import de.raphaelgoetz.buildLite.config.toMeta
-import de.raphaelgoetz.buildLite.spawnLocation
+import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerCredits
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerFavorite
@@ -80,7 +80,7 @@ object WorldLoader {
 
     fun lazyUnload(world: World) {
         for (player in world.players) {
-            player.teleportAsync(spawnLocation)
+            player.teleportAsync(buildLiteInstance().spawnLocation)
             player.sendText("$PREFIX Your current world has been unloaded. You've been teleported back to the servers spawn.") {
                 color = Colorization.RED
             }
@@ -98,7 +98,7 @@ object WorldLoader {
                 player.sendText("$PREFIX Your current world has been deleted. You've been teleported back to the servers spawn.") {
                     color = Colorization.RED
                 }
-                player.teleportAsync(spawnLocation)
+                player.teleportAsync(buildLiteInstance().spawnLocation)
             }
 
             Bukkit.unloadWorld(world, false)
