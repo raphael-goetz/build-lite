@@ -19,8 +19,6 @@ import org.bukkit.Location
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.net.SocketTimeoutException
-import java.util.logging.Level
 
 const val PREFIX = "[build-lite] >"
 
@@ -76,14 +74,7 @@ class BuildLite : Astralis() {
             server?.start()
         }
 
-        try {
-            PlayerProfileCache.init()
-        } catch (e: SocketTimeoutException) {
-            PlayerProfileCache.authAvailable = false
-            Bukkit.getLogger().log(
-                Level.WARNING, "Could not initialize Player profile. Minecraft Auth Server are probably offline", e
-            )
-        }
+        PlayerProfileCache.init()
 
         registerListener()
         registerCommands()
