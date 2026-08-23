@@ -1,5 +1,7 @@
 package de.raphaelgoetz.buildLite.menu
 
+import de.raphaelgoetz.astralis.schedule.doNow
+import de.raphaelgoetz.astralis.schedule.doNowAsync
 import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.ui.data.InventoryRows
 import de.raphaelgoetz.astralis.ui.data.InventorySlots
@@ -13,19 +15,39 @@ import de.raphaelgoetz.buildLite.item.createWorldDisplayItem
 import de.raphaelgoetz.buildLite.item.createWorldFolderItem
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
+import de.raphaelgoetz.buildLite.sql.RecordPlayerCredit
+import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerCreditsFor
 import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedFavoriteWorlds
 import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedWorlds
+import de.raphaelgoetz.buildLite.world.WorldFolder
 import org.bukkit.Material
+import java.util.UUID
 
 import org.bukkit.entity.Player
 
 fun Player.openWorldFolderMenu() {
     closeDialog()
-    val permittedWorlds = getPermittedWorlds()
-    val favoriteWorlds = getPermittedFavoriteWorlds(permittedWorlds)
-    val creditsByWorld = getSqlPlayerCreditsFor(favoriteWorlds.map { it.uniqueId })
 
+    doNowAsync {
+        // All DB reads happen here, off the main thread. Item/inventory
+        // building touches Bukkit APIs, so that stays on the main thread below.
+        val permittedWorlds = getPermittedWorlds()
+        val favoriteWorlds = getPermittedFavoriteWorlds(permittedWorlds)
+        val creditsByWorld = getSqlPlayerCreditsFor(favoriteWorlds.map { it.uniqueId })
+
+        doNow {
+            if (!isOnline) return@doNow
+            renderWorldFolderMenu(permittedWorlds, favoriteWorlds, creditsByWorld)
+        }
+    }
+}
+
+private fun Player.renderWorldFolderMenu(
+    permittedWorlds: List<WorldFolder>,
+    favoriteWorlds: List<RecordWorld>,
+    creditsByWorld: Map<UUID, List<RecordPlayerCredit>>,
+) {
     val favorites = favoriteWorlds
         .sortedBy { it.name }
         .map { createWorldDisplayItem(it, credits = creditsByWorld[it.uniqueId] ?: emptyList(), isFavorite = true) }

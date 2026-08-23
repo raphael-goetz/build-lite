@@ -3,6 +3,8 @@ package de.raphaelgoetz.buildLite.listener.minecraft
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.listenCancelled
 import de.raphaelgoetz.astralis.schedule.doLater
+import de.raphaelgoetz.astralis.schedule.doNow
+import de.raphaelgoetz.astralis.schedule.doNowAsync
 import de.raphaelgoetz.astralis.text.communication.CommunicationType
 import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.text.translation.getValue
@@ -34,8 +36,6 @@ fun registerPlayerEvents() {
     listen<PlayerJoinEvent> { event ->
         val player = event.player
         player.gameMode = GameMode.CREATIVE
-        val cachedPlayer = PlayerCache.getOrInit(player = event.player)
-        val location = cachedPlayer.recordPlayer.lastKnownLocation
 
         for (onlinePlayer in Bukkit.getOnlinePlayers()) {
             if (onlinePlayer.uniqueId == player.uniqueId) continue
@@ -54,21 +54,30 @@ fun registerPlayerEvents() {
         }
         event.joinMessage(null)
 
-        when (cachedPlayer.recordPlayer.reviewMode) {
-            true -> CacheReview.showAll(player)
-            false -> CacheReview.hideAll(player)
-        }
+        // DB lookups (player record + last-known-world) happen off the main thread.
+        // World creation/teleport and entity visibility touch Bukkit APIs that must
+        // run on the main thread, so those are scheduled back via doNow.
+        doNowAsync {
+            val cachedPlayer = PlayerCache.getOrInit(player)
+            val location = cachedPlayer.recordPlayer.lastKnownLocation
+            val world = location?.let { location.worldUuid.toString().toSqlWorldOrNull() }
 
-        // This will teleport the player to his last known location
-        location?.let {
-            //Only if the match was found. Then the world is probably not existing anymore
-            location.worldUuid.toString().toSqlWorldOrNull()?.let { world ->
-                WorldLoader.lazyTeleport(location, world.generator, event.player)
+            doNow {
+                if (!player.isOnline) return@doNow
+
+                when (cachedPlayer.recordPlayer.reviewMode) {
+                    true -> CacheReview.showAll(player)
+                    false -> CacheReview.hideAll(player)
+                }
+
+                // This will teleport the player to his last known location.
+                // Only if the match was found. Then the world is probably not existing anymore
+                if (location != null && world != null) {
+                    WorldLoader.lazyTeleport(location, world.generator, player)
+                } else if (location == null) {
+                    player.teleportAsync(buildLiteInstance().spawnLocation)
+                }
             }
-        }
-
-        if (location == null) {
-            event.player.teleportAsync(buildLiteInstance().spawnLocation)
         }
     }
 
@@ -84,7 +93,9 @@ fun registerPlayerEvents() {
         }
 
         PlayerCache.flush(player)
-        player.actionUpdateLastLocation(location)
+        doNowAsync {
+            player.actionUpdateLastLocation(location)
+        }
 
         event.quitMessage(null)
         for (onlinePlayer in Bukkit.getOnlinePlayers()) {
@@ -115,10 +126,16 @@ fun registerPlayerEvents() {
     listen<PlayerTeleportEvent> { playerTeleportEvent ->
         val player = playerTeleportEvent.player
         val targetWorldName = playerTeleportEvent.to.world.name
+        val fromLocation = playerTeleportEvent.from
 
-        val world = targetWorldName.toSqlWorldOrNull() ?: return@listen
-        if (!player.hasWorldEnterPermission(world.name, world.group)) {
-            player.teleportAsync(playerTeleportEvent.from)
+        // hasWorldEnterPermission (permission check + message) and teleportAsync
+        // are all safe to call off the main thread, so only the DB lookup needs
+        // to move -- no doNow hop back required here.
+        doNowAsync {
+            val world = targetWorldName.toSqlWorldOrNull() ?: return@doNowAsync
+            if (!player.hasWorldEnterPermission(world.name, world.group)) {
+                player.teleportAsync(fromLocation)
+            }
         }
     }
 

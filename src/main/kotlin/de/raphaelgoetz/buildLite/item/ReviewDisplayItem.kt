@@ -3,6 +3,8 @@ package de.raphaelgoetz.buildLite.item
 import de.raphaelgoetz.astralis.items.builder.SmartLoreBuilder
 import de.raphaelgoetz.astralis.items.createSmartItem
 import de.raphaelgoetz.astralis.items.data.InteractionType
+import de.raphaelgoetz.astralis.schedule.doNow
+import de.raphaelgoetz.astralis.schedule.doNowAsync
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.dialog.review.showReviewDeletionDialog
@@ -34,10 +36,15 @@ fun Player.createReviewDisplayItem(record: RecordPlayerReview): SmartClick {
         }
 
         if (click.isLeftClick) {
-            //Only if the match was found. Then the world is probably not existing anymore
-            record.loadableLocation.worldUuid.toString().toSqlWorldOrNull()?.let { world ->
-                closeInventory()
-                WorldLoader.lazyTeleport(record.loadableLocation, world.generator, this)
+            doNowAsync {
+                //Only if the match was found. Then the world is probably not existing anymore
+                val world = record.loadableLocation.worldUuid.toString().toSqlWorldOrNull() ?: return@doNowAsync
+
+                doNow {
+                    if (!isOnline) return@doNow
+                    closeInventory()
+                    WorldLoader.lazyTeleport(record.loadableLocation, world.generator, this)
+                }
             }
 
             return@SmartClick
