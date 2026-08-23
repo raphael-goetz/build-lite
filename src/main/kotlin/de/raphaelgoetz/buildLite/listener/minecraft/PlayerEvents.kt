@@ -13,8 +13,7 @@ import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
 import de.raphaelgoetz.buildLite.spawnLocation
-import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
-import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
+import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -62,17 +61,9 @@ fun registerPlayerEvents() {
 
         // This will teleport the player to his last known location
         location?.let {
-            var generator: WorldGenerator? = null
-            for (world in worlds) {
-                if (location.worldUuid == world.uniqueId) {
-                    generator = world.generator
-                    break
-                }
-            }
-
             //Only if the match was found. Then the world is probably not existing anymore
-            generator?.let {
-                WorldLoader.lazyTeleport(location, it, event.player)
+            location.worldUuid.toString().toSqlWorldOrNull()?.let { world ->
+                WorldLoader.lazyTeleport(location, world.generator, event.player)
             }
         }
 
@@ -125,12 +116,9 @@ fun registerPlayerEvents() {
         val player = playerTeleportEvent.player
         val targetWorldName = playerTeleportEvent.to.world.name
 
-        //TODO: improve this handling -> async and its separate query
-        for (world in worlds) {
-            if (world.uniqueId.toString() != targetWorldName) continue
-            if (player.hasWorldEnterPermission(world.name, world.group)) continue
+        val world = targetWorldName.toSqlWorldOrNull() ?: return@listen
+        if (!player.hasWorldEnterPermission(world.name, world.group)) {
             player.teleportAsync(playerTeleportEvent.from)
-            break
         }
     }
 

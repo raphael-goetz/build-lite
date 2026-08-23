@@ -8,8 +8,7 @@ import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.dialog.review.showReviewDeletionDialog
 import de.raphaelgoetz.buildLite.sql.RecordPlayerReview
 import de.raphaelgoetz.buildLite.sql.submitReview
-import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
-import de.raphaelgoetz.buildLite.world.WorldContainer.worlds
+import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
 import de.raphaelgoetz.buildLite.world.WorldLoader
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -35,19 +34,10 @@ fun Player.createReviewDisplayItem(record: RecordPlayerReview): SmartClick {
         }
 
         if (click.isLeftClick) {
-
-            var generator: WorldGenerator? = null
-            for (world in worlds) {
-                if (record.loadableLocation.worldUuid == world.uniqueId) {
-                    generator = world.generator
-                    break
-                }
-            }
-
             //Only if the match was found. Then the world is probably not existing anymore
-            generator?.let {
+            record.loadableLocation.worldUuid.toString().toSqlWorldOrNull()?.let { world ->
                 closeInventory()
-                WorldLoader.lazyTeleport(record.loadableLocation, it, this)
+                WorldLoader.lazyTeleport(record.loadableLocation, world.generator, this)
             }
 
             return@SmartClick
