@@ -38,7 +38,6 @@ data class Review(
     }
 
     fun destroy() {
-        println("trying to delete the entity")
         textDisplay?.remove()
     }
 

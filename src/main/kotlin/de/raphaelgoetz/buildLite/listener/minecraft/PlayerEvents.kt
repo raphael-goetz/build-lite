@@ -87,7 +87,6 @@ fun registerPlayerEvents() {
         val world = location.world
 
         doLater(5) {
-            println(world.players.isEmpty())
             if (world.players.isEmpty()) {
                 WorldLoader.lazyUnload(world = world)
             }
