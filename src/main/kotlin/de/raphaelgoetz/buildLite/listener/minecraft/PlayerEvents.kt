@@ -134,7 +134,21 @@ fun registerPlayerEvents() {
         doNowAsync {
             val world = targetWorldName.toSqlWorldOrNull() ?: return@doNowAsync
             if (!player.hasWorldEnterPermission(world.name, world.group)) {
-                player.teleportAsync(fromLocation)
+                // If "from" is the same forbidden world as "to" (e.g. on join,
+                // when the player's vanilla position and their last-known DB
+                // location both already sit in a world they've since lost
+                // access to), correcting back to "from" is itself a teleport
+                // into that same forbidden world -- which re-triggers this
+                // listener and denies again, forever, flooding teleport packets
+                // until the player gets kicked. Fall back to a known-safe
+                // location instead of chasing a "from" that isn't safe either.
+                val destination = if (fromLocation.world.name == targetWorldName) {
+                    buildLiteInstance().spawnLocation
+                } else {
+                    fromLocation
+                }
+
+                player.teleportAsync(destination)
             }
         }
     }
