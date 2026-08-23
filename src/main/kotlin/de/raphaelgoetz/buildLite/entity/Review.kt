@@ -9,11 +9,17 @@ import de.raphaelgoetz.buildLite.sql.getSqlPlayerReview
 import de.raphaelgoetz.buildLite.world.toLocation
 import net.kyori.adventure.text.Component
 import org.bukkit.Location
+import org.bukkit.NamespacedKey
 import org.bukkit.World
 import org.bukkit.entity.Display
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.entity.TextDisplay
+import org.bukkit.persistence.PersistentDataType
+
+/** Tags every review entity so stale, already-persisted duplicates from before
+ * entities were made non-persistent can be identified and purged on world load. */
+val REVIEW_ENTITY_KEY: NamespacedKey = NamespacedKey(buildLiteInstance(), "review-entity")
 
 data class Review(
     val recordPlayerReview: RecordPlayerReview, val world: World
@@ -30,6 +36,15 @@ data class Review(
 
         val entity = world.spawnEntity(location, EntityType.TEXT_DISPLAY)
         if (entity is TextDisplay) {
+            // Without this, Minecraft's own periodic autosave can write this
+            // entity to the world's region files independently of the plugin's
+            // lifecycle. On an unclean shutdown (crash, kill -9, OOM) that copy
+            // survives on disk and gets resurrected on the next world load --
+            // on top of the fresh one CacheReview.loadWorld spawns -- duplicating
+            // forever across every unclean restart. Marking it non-persistent
+            // means it is never eligible for that disk write in the first place.
+            entity.isPersistent = false
+            entity.persistentDataContainer.set(REVIEW_ENTITY_KEY, PersistentDataType.INTEGER, recordPlayerReview.id)
             entity.renderText(recordPlayerReview)
             textDisplay = entity
         }

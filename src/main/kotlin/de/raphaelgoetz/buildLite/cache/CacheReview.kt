@@ -2,9 +2,12 @@ package de.raphaelgoetz.buildLite.cache
 
 import de.raphaelgoetz.buildLite.entity.Review
 import de.raphaelgoetz.buildLite.sql.RecordPlayerReview
+import de.raphaelgoetz.buildLite.world.toLocation
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.entity.Player
+import org.bukkit.entity.TextDisplay
 
 object CacheReview {
     private var cache = mutableMapOf<World, MutableList<Review>>()
@@ -63,6 +66,13 @@ object CacheReview {
         val reviewEntities = mutableListOf<Review>()
 
         for (review in reviews) {
+            // One-time cleanup: build-lite is the only thing that ever spawns a
+            // TextDisplay at a review's exact recorded location, so anything
+            // already sitting there -- tagged or not -- is a leftover duplicate.
+            // This also catches entities spawned before entities were made
+            // non-persistent (no tag existed yet), not just future regressions.
+            purgeStaleReviewEntitiesAt(world, review)
+
             val r = Review(review, world)
             r.spawn()
             reviewEntities.add(r)
@@ -97,5 +107,28 @@ object CacheReview {
         for (entity in getAll()) {
             entity.hideFor(player)
         }
+    }
+
+    private const val STALE_ENTITY_SEARCH_RADIUS = 0.5
+
+    private fun purgeStaleReviewEntitiesAt(world: World, review: RecordPlayerReview) {
+        val spawnLocation = review.loadableLocation.toLocation(world).apply { y += 1 }
+
+        world.getNearbyEntities(
+            spawnLocation, STALE_ENTITY_SEARCH_RADIUS, STALE_ENTITY_SEARCH_RADIUS, STALE_ENTITY_SEARCH_RADIUS
+        )
+            .filterIsInstance<TextDisplay>()
+            .filter { it.matchesReviewBody(review) }
+            .forEach { it.remove() }
+    }
+
+    /**
+     * Position alone isn't a strong enough signal to remove someone else's
+     * entity -- also require the displayed text to actually be this review's
+     * content (renderText always writes the title as the very first line).
+     */
+    private fun TextDisplay.matchesReviewBody(review: RecordPlayerReview): Boolean {
+        val plainText = PlainTextComponentSerializer.plainText().serialize(text())
+        return plainText.startsWith(review.title) && plainText.contains(review.description)
     }
 }
