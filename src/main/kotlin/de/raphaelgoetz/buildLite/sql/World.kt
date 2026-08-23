@@ -7,26 +7,27 @@ import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.sql.types.WorldState
 import de.raphaelgoetz.buildLite.world.LoadableLocation
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.util.UUID
 import kotlin.let
 
 object SqlWorld : Table("worlds") {
-    val uuid = uuid("uuid")
+    val uuid = javaUUID("uuid")
 
     // Metadata
     val name = varchar("name", 255)
     val group = varchar("group", 255)
     val state = enumerationByName("state", WORLD_STATE_NAME_COLUMN_LENGTH, WorldState::class)
     val generator = enumerationByName("generator", WORLD_GENERATOR_NAME_COLUMN_LENGTH, WorldGenerator::class)
-    val creatorUuid = uuid("creator_uuid")
+    val creatorUuid = javaUUID("creator_uuid")
 
     // Spawn Data
     val spawnX = double("spawn_x")

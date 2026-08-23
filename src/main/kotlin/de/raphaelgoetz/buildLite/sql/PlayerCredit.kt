@@ -1,20 +1,21 @@
 package de.raphaelgoetz.buildLite.sql
 
 import de.raphaelgoetz.buildLite.world.LoadableWorld
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.UUID
 
 object SqlPlayerCredit : Table("player_credits") {
     val id = integer("id").autoIncrement()
 
-    val worldUUID = uuid("world_uuid")
-    val playerUUID = uuid("player_uuid")
+    val worldUUID = javaUUID("world_uuid")
+    val playerUUID = javaUUID("player_uuid")
 
     override val primaryKey = PrimaryKey(id)
 }

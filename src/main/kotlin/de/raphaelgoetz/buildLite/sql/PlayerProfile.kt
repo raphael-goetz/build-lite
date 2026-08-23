@@ -1,6 +1,7 @@
 package de.raphaelgoetz.buildLite.sql
 
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.UUID
 
 fun selectUniquePlayerUuids(): List<UUID> = transaction {
