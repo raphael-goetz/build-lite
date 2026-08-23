@@ -14,6 +14,8 @@ import de.raphaelgoetz.buildLite.sql.SqlPlayerWarp
 import de.raphaelgoetz.buildLite.sql.SqlWorld
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.jetbrains.exposed.sql.Database
@@ -30,6 +32,7 @@ lateinit var BuildLiteInstance: BuildLite
 
 class BuildLite : Astralis() {
     var server: FileServer? = null
+    private var dataSource: HikariDataSource? = null
 
     override fun enable() {
         BuildLiteInstance = this
@@ -49,10 +52,25 @@ class BuildLite : Astralis() {
             config.getDouble("location.pitch", 0.0).toFloat(),
         )
 
-        Database.connect(
-            url = pluginConfig.dbUrl,
-            driver = pluginConfig.dbDriver
-        )
+        // Database.connect(url, driver) opens a brand new JDBC connection for every
+        // transaction{} block and closes it afterward. A pooled/persistent connection
+        // avoids that per-query connect/disconnect cost. SQLite only supports a single
+        // writer, so the pool is intentionally sized to 1 rather than left at Hikari's
+        // default of 10 (which would just serialize on SQLite's file lock anyway).
+        val hikariConfig = HikariConfig().apply {
+            jdbcUrl = pluginConfig.dbUrl
+            driverClassName = pluginConfig.dbDriver
+            maximumPoolSize = 1
+            connectionInitSql = "PRAGMA journal_mode=WAL;"
+
+            // Most callers run on the main server thread. Hikari's default 30s
+            // connectionTimeout would block it that long if the DB is unreachable,
+            // risking the Paper watchdog killing the server. Fail fast instead.
+            connectionTimeout = 3_000
+        }
+        dataSource = HikariDataSource(hikariConfig)
+
+        Database.connect(dataSource!!)
 
         transaction {
             SchemaUtils.create(
@@ -87,5 +105,7 @@ class BuildLite : Astralis() {
         for (world in Bukkit.getWorlds()) {
             WorldLoader.lazyUnload(world)
         }
+
+        dataSource?.close()
     }
 }
