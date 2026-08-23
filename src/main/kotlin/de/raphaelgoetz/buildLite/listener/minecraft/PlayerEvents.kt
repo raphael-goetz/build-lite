@@ -16,6 +16,7 @@ import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
 import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
+import de.raphaelgoetz.buildLite.world.OVERWORLD_UUID
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -60,7 +61,10 @@ fun registerPlayerEvents() {
         doNowAsync {
             val cachedPlayer = PlayerCache.getOrInit(player)
             val location = cachedPlayer.recordPlayer.lastKnownLocation
-            val world = location?.let { location.worldUuid.toString().toSqlWorldOrNull() }
+            val isOverworld = location?.worldUuid == OVERWORLD_UUID
+            val world = if (location != null && !isOverworld) {
+                location.worldUuid.toString().toSqlWorldOrNull()
+            } else null
 
             doNow {
                 if (!player.isOnline) return@doNow
@@ -72,7 +76,9 @@ fun registerPlayerEvents() {
 
                 // This will teleport the player to his last known location.
                 // Only if the match was found. Then the world is probably not existing anymore
-                if (location != null && world != null) {
+                if (location != null && isOverworld) {
+                    WorldLoader.lazyTeleportOverworld(location, player)
+                } else if (location != null && world != null) {
                     WorldLoader.lazyTeleport(location, world.generator, player)
                 } else if (location == null) {
                     player.teleportAsync(buildLiteInstance().spawnLocation)

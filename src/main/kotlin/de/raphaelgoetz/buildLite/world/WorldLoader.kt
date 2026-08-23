@@ -44,6 +44,17 @@ object WorldLoader {
         creator.createWorld()
     }
 
+    /** For a [LoadableLocation] tagged with [OVERWORLD_UUID] -- the vanilla
+     * overworld is always loaded and isn't tracked in SqlWorld, so it needs its
+     * own teleport path instead of going through the custom-world machinery. */
+    fun lazyTeleportOverworld(loadableLocation: LoadableLocation, player: Player) {
+        val overworld = Bukkit.getWorld("world") ?: return
+        player.teleportAsync(loadableLocation.toLocation(overworld))
+        player.sendText("$PREFIX You entered the world: Overworld") {
+            color = Colorization.LIME
+        }
+    }
+
     fun lazyTeleport(loadableLocation: LoadableLocation, generator: WorldGenerator, player: Player) {
         val world = Bukkit.getWorld(loadableLocation.worldUuid.toString())
         val record = getSqlWorld(loadableLocation.worldUuid)

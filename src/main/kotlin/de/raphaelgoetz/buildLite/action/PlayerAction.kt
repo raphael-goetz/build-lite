@@ -6,6 +6,8 @@ import de.raphaelgoetz.buildLite.PREFIX
 import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.sql.updateSqlPlayer
+import de.raphaelgoetz.buildLite.world.LoadableLocation
+import de.raphaelgoetz.buildLite.world.OVERWORLD_UUID
 import de.raphaelgoetz.buildLite.world.toLoadableLocation
 import org.bukkit.Location
 import org.bukkit.entity.Player
@@ -13,7 +15,15 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
 fun Player.actionUpdateLastLocation(location: Location) {
-    val loadableLocation = location.toLoadableLocation()
+    // toLoadableLocation() only handles build-lite's own UUID-named custom
+    // worlds and returns null for the vanilla overworld, so quitting there
+    // silently left lastKnownLocation untouched. Represent the overworld with
+    // the reserved sentinel UUID instead so it round-trips like any other world.
+    val loadableLocation = if (location.world.name == "world") {
+        LoadableLocation(OVERWORLD_UUID, location.x, location.y, location.z, location.yaw, location.pitch)
+    } else {
+        location.toLoadableLocation()
+    }
 
     loadableLocation?.let {
         updateSqlPlayer(location = it)
