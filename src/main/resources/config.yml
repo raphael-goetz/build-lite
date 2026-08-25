@@ -11,3 +11,6 @@ location:
 sql:
   driver: "org.sqlite.JDBC"
   url: "jdbc:sqlite:worlds.db"
+build-time:
+  afkThresholdSeconds: 180
+  tickIntervalSeconds: 20
