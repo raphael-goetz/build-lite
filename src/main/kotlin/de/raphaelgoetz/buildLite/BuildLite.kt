@@ -1,12 +1,14 @@
 package de.raphaelgoetz.buildLite
 
 import de.raphaelgoetz.astralis.Astralis
+import de.raphaelgoetz.buildLite.buildtime.BuildTimeTracker
 import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
 import de.raphaelgoetz.buildLite.command.registerCommands
 import de.raphaelgoetz.buildLite.config.PluginConfig
 import de.raphaelgoetz.buildLite.listener.registerListener
 import de.raphaelgoetz.buildLite.server.FileServer
 import de.raphaelgoetz.buildLite.sql.SqlPlayer
+import de.raphaelgoetz.buildLite.sql.SqlPlayerBuildTime
 import de.raphaelgoetz.buildLite.sql.SqlPlayerCredit
 import de.raphaelgoetz.buildLite.sql.SqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.SqlPlayerReview
@@ -54,6 +56,8 @@ class BuildLite : Astralis() {
             config.getDouble("location.z", 0.5),
             config.getDouble("location.yaw", 90.0).toFloat(),
             config.getDouble("location.pitch", 0.0).toFloat(),
+            config.getLong("build-time.afkThresholdSeconds", 180),
+            config.getLong("build-time.tickIntervalSeconds", 20),
         )
 
         // Database.connect(url, driver) opens a brand new JDBC connection for every
@@ -78,7 +82,7 @@ class BuildLite : Astralis() {
 
         transaction {
             SchemaUtils.create(
-                SqlPlayer, SqlPlayerCredit, SqlPlayerFavorite, SqlPlayerReview, SqlPlayerWarp, SqlWorld
+                SqlPlayer, SqlPlayerBuildTime, SqlPlayerCredit, SqlPlayerFavorite, SqlPlayerReview, SqlPlayerWarp, SqlWorld
             )
         }
 
@@ -97,12 +101,14 @@ class BuildLite : Astralis() {
         }
 
         PlayerProfileCache.init()
+        BuildTimeTracker.start(pluginConfig.buildTimeAfkThresholdSeconds, pluginConfig.buildTimeTickIntervalSeconds)
 
         registerListener()
         registerCommands()
     }
 
     override fun disable() {
+        BuildTimeTracker.stop()
         server?.stop()
 
         //For graceful shutdown!!!
