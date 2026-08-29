@@ -30,12 +30,32 @@ data class RecordPlayerBuildTime(
     val seconds: Long,
 )
 
+data class BuildTimeCredit(
+    val playerUuid: UUID,
+    val worldUuid: UUID,
+    val seconds: Long,
+)
+
 /**
  * Upserts the daily bucket for (player, world, day), adding [delta] seconds
  * to whatever is already recorded. Called once per sampler tick, so a bucket
  * usually already exists after the first hit of the day.
  */
 fun addSqlBuildTimeSeconds(playerUuid: UUID, worldUuid: UUID, day: LocalDate, delta: Long) = transaction {
+    addBuildTimeSeconds(playerUuid, worldUuid, day, delta)
+}
+
+/**
+ * Writes one sampler pass in a single transaction. With SQLite's single
+ * writer this avoids making UI reads wait behind one transaction per player.
+ */
+fun addSqlBuildTimeSeconds(credits: List<BuildTimeCredit>, day: LocalDate = LocalDate.now()) = transaction {
+    credits.forEach { credit ->
+        addBuildTimeSeconds(credit.playerUuid, credit.worldUuid, day, credit.seconds)
+    }
+}
+
+private fun addBuildTimeSeconds(playerUuid: UUID, worldUuid: UUID, day: LocalDate, delta: Long) {
     val dayText = day.toString()
     val existing = SqlPlayerBuildTime.selectAll().where {
         (SqlPlayerBuildTime.playerUUID eq playerUuid) and

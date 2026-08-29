@@ -7,6 +7,7 @@ import de.raphaelgoetz.buildLite.action.actionEnableBuildMode
 import de.raphaelgoetz.buildLite.action.actionEnableNightMode
 import de.raphaelgoetz.buildLite.action.actionEnableReviewMode
 import de.raphaelgoetz.buildLite.cache.PlayerCache
+import de.raphaelgoetz.buildLite.dialog.buildtime.showBuildTimeIntervalDialog
 import de.raphaelgoetz.buildLite.dialog.createAction
 import de.raphaelgoetz.buildLite.dialog.review.showReviewCreationDialog
 import de.raphaelgoetz.buildLite.dialog.warp.showWarpCreationDialog
@@ -66,6 +67,9 @@ private fun Player.createHomeDialog(): Dialog {
         },
         createAction("Create Review", "Start a new review for your world.") { _, _ ->
             showReviewCreationDialog()
+        },
+        createAction("Build Time", "See how long you've spent building per world.") { _, _ ->
+            showBuildTimeIntervalDialog()
         },
         createAction("World Menu", "Open your world selection menu.", if (hasMigrations) 100 else 200) { _, _ ->
             openWorldFolderMenu()

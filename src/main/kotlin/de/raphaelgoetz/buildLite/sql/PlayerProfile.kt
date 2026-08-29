@@ -13,5 +13,9 @@ fun selectUniquePlayerUuids(): List<UUID> = transaction {
         .select(SqlPlayerCredit.playerUUID)
         .map { it[SqlPlayerCredit.playerUUID] }
 
-    (fromPlayers + fromCredits).distinct()
+    val fromBuildTime = SqlPlayerBuildTime
+        .select(SqlPlayerBuildTime.playerUUID)
+        .map { it[SqlPlayerBuildTime.playerUUID] }
+
+    (fromPlayers + fromCredits + fromBuildTime).distinct()
 }
