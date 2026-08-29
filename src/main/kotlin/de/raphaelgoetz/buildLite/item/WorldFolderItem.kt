@@ -22,7 +22,7 @@ import org.bukkit.inventory.meta.SkullMeta
 import java.net.URI
 import java.util.UUID
 
-fun Player.createWorldFolderItem(worldFolder: WorldFolder): SmartClick {
+fun Player.createWorldFolderItem(worldFolder: WorldFolder, onOpen: (() -> Unit)? = null): SmartClick {
     val item = createSmartItem<SkullMeta>(
         name = worldFolder.group.capitalizeFirst(),
         material = Material.PLAYER_HEAD,
@@ -42,8 +42,14 @@ fun Player.createWorldFolderItem(worldFolder: WorldFolder): SmartClick {
         this.lore(description)
     }
 
-    return SmartClick(item) {
-        openWorldDisplayMenu(worldFolder)
+    return SmartClick(item) { click ->
+        // Inventory items must never be movable. World items already cancelled
+        // their click, but folder items did not, which let the head end up on
+        // the cursor and eventually in the player's inventory.
+        click.isCancelled = true
+        if (!click.isLeftClick) return@SmartClick
+
+        onOpen?.invoke() ?: openWorldDisplayMenu(worldFolder)
     }
 }
 

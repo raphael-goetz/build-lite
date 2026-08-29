@@ -18,7 +18,8 @@ import de.raphaelgoetz.buildLite.registry.getItemWithURL
 import de.raphaelgoetz.buildLite.sql.RecordPlayerCredit
 import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerCreditsFor
-import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedFavoriteWorlds
+import de.raphaelgoetz.buildLite.sql.getSqlBuildTimeByWorld
+import de.raphaelgoetz.buildLite.sql.getSqlPlayerFavoriteWorldUuids
 import de.raphaelgoetz.buildLite.world.WorldContainer.getPermittedWorlds
 import de.raphaelgoetz.buildLite.world.WorldFolder
 import org.bukkit.Material
@@ -28,17 +29,28 @@ import org.bukkit.entity.Player
 
 fun Player.openWorldFolderMenu() {
     closeDialog()
+    val playerUuid = uniqueId
+    sendActionBar(net.kyori.adventure.text.Component.text("Loading worlds…"))
 
     doNowAsync {
         // All DB reads happen here, off the main thread. Item/inventory
         // building touches Bukkit APIs, so that stays on the main thread below.
         val permittedWorlds = getPermittedWorlds()
-        val favoriteWorlds = getPermittedFavoriteWorlds(permittedWorlds)
-        val creditsByWorld = getSqlPlayerCreditsFor(favoriteWorlds.map { it.uniqueId })
+        val worlds = permittedWorlds.flatMap { it.worlds }
+        val favoriteUuids = getSqlPlayerFavoriteWorldUuids()
+        val favoriteWorlds = worlds.filter { it.uniqueId in favoriteUuids }
+        val creditsByWorld = getSqlPlayerCreditsFor(worlds.map { it.uniqueId })
+        val buildTimeByWorld = getSqlBuildTimeByWorld(playerUuid)
 
         doNow {
             if (!isOnline) return@doNow
-            renderWorldFolderMenu(permittedWorlds, favoriteWorlds, creditsByWorld)
+            renderWorldFolderMenu(
+                permittedWorlds,
+                favoriteWorlds,
+                creditsByWorld,
+                favoriteUuids,
+                buildTimeByWorld,
+            )
         }
     }
 }
@@ -47,14 +59,27 @@ private fun Player.renderWorldFolderMenu(
     permittedWorlds: List<WorldFolder>,
     favoriteWorlds: List<RecordWorld>,
     creditsByWorld: Map<UUID, List<RecordPlayerCredit>>,
+    favoriteUuids: Set<UUID>,
+    buildTimeByWorld: Map<UUID, Long>,
 ) {
     val favorites = favoriteWorlds
         .sortedBy { it.name }
-        .map { createWorldDisplayItem(it, credits = creditsByWorld[it.uniqueId] ?: emptyList(), isFavorite = true) }
+        .map {
+            createWorldDisplayItem(
+                it,
+                credits = creditsByWorld[it.uniqueId] ?: emptyList(),
+                isFavorite = true,
+                buildTimeSeconds = buildTimeByWorld[it.uniqueId] ?: 0L,
+            )
+        }
 
     val folders = permittedWorlds
         .sortedBy { it.group }
-        .map { createWorldFolderItem(it) }
+        .map { folder ->
+            createWorldFolderItem(folder) {
+                openWorldDisplayMenu(folder, creditsByWorld, favoriteUuids, buildTimeByWorld)
+            }
+        }
 
     val clicks = favorites + folders
 

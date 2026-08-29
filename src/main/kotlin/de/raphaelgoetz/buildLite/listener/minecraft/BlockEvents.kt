@@ -2,6 +2,7 @@ package de.raphaelgoetz.buildLite.listener.minecraft
 
 import de.raphaelgoetz.astralis.event.listen
 import de.raphaelgoetz.astralis.event.listenCancelled
+import de.raphaelgoetz.buildLite.cache.markActive
 import de.raphaelgoetz.buildLite.listener.cancelWhenBuilder
 import de.raphaelgoetz.buildLite.registry.Door
 import org.bukkit.Material
@@ -19,6 +20,7 @@ fun registerBlockEvents() {
         }
 
         player.cancelWhenBuilder(blockBreakEvent)
+        if (!blockBreakEvent.isCancelled) player.markActive()
     }
 
     listen<BlockPhysicsEvent> { blockPhysicsEvent ->
@@ -31,6 +33,7 @@ fun registerBlockEvents() {
     listen<BlockPlaceEvent> { blockPlaceEvent ->
         val player = blockPlaceEvent.player
         player.cancelWhenBuilder(blockPlaceEvent)
+        if (!blockPlaceEvent.isCancelled) player.markActive()
     }
 
     listenCancelled<BlockBurnEvent>()

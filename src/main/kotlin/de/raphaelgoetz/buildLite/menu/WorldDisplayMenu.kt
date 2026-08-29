@@ -15,6 +15,7 @@ import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
 import de.raphaelgoetz.buildLite.sql.RecordPlayerCredit
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerCreditsFor
+import de.raphaelgoetz.buildLite.sql.getSqlBuildTimeByWorld
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerFavoriteWorldUuids
 import de.raphaelgoetz.buildLite.world.WorldFolder
 import org.bukkit.Material
@@ -23,21 +24,35 @@ import java.util.UUID
 
 fun Player.openWorldDisplayMenu(folder: WorldFolder) {
     closeDialog()
+    val playerUuid = uniqueId
+    sendActionBar(net.kyori.adventure.text.Component.text("Loading worlds…"))
 
     doNowAsync {
         val creditsByWorld = getSqlPlayerCreditsFor(folder.worlds.map { it.uniqueId })
         val favoriteUuids = getSqlPlayerFavoriteWorldUuids()
+        val buildTimeByWorld = getSqlBuildTimeByWorld(playerUuid)
 
         doNow {
-            if (isOnline) renderWorldDisplayMenu(folder, creditsByWorld, favoriteUuids)
+            if (isOnline) renderWorldDisplayMenu(folder, creditsByWorld, favoriteUuids, buildTimeByWorld)
         }
     }
+}
+
+/** Opens a folder from a snapshot already loaded for the parent menu. */
+fun Player.openWorldDisplayMenu(
+    folder: WorldFolder,
+    creditsByWorld: Map<UUID, List<RecordPlayerCredit>>,
+    favoriteUuids: Set<UUID>,
+    buildTimeByWorld: Map<UUID, Long>,
+) {
+    renderWorldDisplayMenu(folder, creditsByWorld, favoriteUuids, buildTimeByWorld)
 }
 
 private fun Player.renderWorldDisplayMenu(
     folder: WorldFolder,
     creditsByWorld: Map<UUID, List<RecordPlayerCredit>>,
     favoriteUuids: Set<UUID>,
+    buildTimeByWorld: Map<UUID, Long>,
 ) {
     val worlds = folder.worlds
         .sortedBy { it.name }
@@ -46,6 +61,7 @@ private fun Player.renderWorldDisplayMenu(
                 it,
                 credits = creditsByWorld[it.uniqueId] ?: emptyList(),
                 isFavorite = it.uniqueId in favoriteUuids,
+                buildTimeSeconds = buildTimeByWorld[it.uniqueId] ?: 0L,
             )
         }
 

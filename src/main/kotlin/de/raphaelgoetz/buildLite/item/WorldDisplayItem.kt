@@ -12,6 +12,7 @@ import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
 import de.raphaelgoetz.buildLite.dialog.world.showWorldActionDialog
 import de.raphaelgoetz.buildLite.dialog.world.showWorldEditPropertyDialog
 import de.raphaelgoetz.buildLite.formatting.capitalizeFirst
+import de.raphaelgoetz.buildLite.formatting.formatDuration
 import de.raphaelgoetz.buildLite.menu.openReviewMenu
 import de.raphaelgoetz.buildLite.menu.openWarpMenu
 import de.raphaelgoetz.buildLite.menu.openWorldFolderMenu
@@ -36,6 +37,7 @@ fun Player.createWorldDisplayItem(
     recordWorld: RecordWorld,
     credits: List<RecordPlayerCredit> = LoadableWorld(recordWorld.uniqueId).getSqlPlayerCredits(),
     isFavorite: Boolean = hasSqlPlayerFavorite(recordWorld.uniqueId),
+    buildTimeSeconds: Long = 0L,
 ): SmartClick {
     val name = if (isFavorite) "★ " + recordWorld.name.capitalizeFirst() + " ★" else recordWorld.name.capitalizeFirst()
     val item = createSmartItem<SkullMeta>(
@@ -51,7 +53,7 @@ fun Player.createWorldDisplayItem(
         newPlayerProfile.setTextures(playerTextures)
         playerProfile = newPlayerProfile
 
-        val description = getDescription(recordWorld, credits, isFavorite)
+        val description = getDescription(recordWorld, credits, isFavorite, buildTimeSeconds)
         this.lore(description)
     }
 
@@ -93,7 +95,10 @@ fun Player.createWorldDisplayItem(
 }
 
 private fun getDescription(
-    recordWorld: RecordWorld, credits: List<RecordPlayerCredit>, isFavorite: Boolean
+    recordWorld: RecordWorld,
+    credits: List<RecordPlayerCredit>,
+    isFavorite: Boolean,
+    buildTimeSeconds: Long,
 ): List<Component> {
     val profile = PlayerProfileCache.getOrFetch(recordWorld.creatorUuid)
     val firstSection = mutableListOf("Status: ${recordWorld.state.text}".gray(), "Created by: ".gray().append {
@@ -103,7 +108,8 @@ private fun getDescription(
                 color = Colorization.LIME
             }
         }
-    }, "Generator: ${recordWorld.generator.text}".gray())
+    }, "Generator: ${recordWorld.generator.text}".gray(),
+        "Your build time: ${buildTimeSeconds.formatDuration()}".gray())
 
     val middleSection = mutableListOf<Component>()
 

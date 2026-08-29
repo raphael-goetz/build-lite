@@ -11,7 +11,9 @@ import de.raphaelgoetz.astralis.text.translation.getValue
 import de.raphaelgoetz.astralis.text.translation.sendTransText
 import de.raphaelgoetz.buildLite.action.actionUpdateLastLocation
 import de.raphaelgoetz.buildLite.cache.CacheReview
+import de.raphaelgoetz.buildLite.cache.PlayerActivityCache
 import de.raphaelgoetz.buildLite.cache.PlayerCache
+import de.raphaelgoetz.buildLite.cache.markActive
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
 import de.raphaelgoetz.buildLite.buildLiteInstance
@@ -37,6 +39,7 @@ fun registerPlayerEvents() {
     listen<PlayerJoinEvent> { event ->
         val player = event.player
         player.gameMode = GameMode.CREATIVE
+        player.markActive()
 
         for (onlinePlayer in Bukkit.getOnlinePlayers()) {
             if (onlinePlayer.uniqueId == player.uniqueId) continue
@@ -91,6 +94,7 @@ fun registerPlayerEvents() {
         val player = event.player
         val location = player.location
         val world = location.world
+        PlayerActivityCache.flush(player.uniqueId)
 
         doLater(5) {
             if (world.players.isEmpty()) {
@@ -156,6 +160,14 @@ fun registerPlayerEvents() {
 
                 player.teleportAsync(destination)
             }
+        }
+    }
+
+    listen<PlayerMoveEvent> { event ->
+        val from = event.from
+        val to = event.to
+        if (from.x != to.x || from.y != to.y || from.z != to.z) {
+            event.player.markActive()
         }
     }
 

@@ -11,4 +11,6 @@ data class PluginConfig(
     val spawnZ: Double,
     val spawnPitch: Float,
     val spawnYaw: Float,
+    val buildTimeAfkThresholdSeconds: Long,
+    val buildTimeTickIntervalSeconds: Long,
 )
