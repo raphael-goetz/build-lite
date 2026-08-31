@@ -18,7 +18,7 @@ import org.bukkit.entity.Player
 private fun Player.exitAction(): ActionButton {
     return ActionButton.create(
         Component.text("Back"),
-        Component.text("Return to the home menu"),
+        Component.text("Return to the world browser"),
         100,
         DialogAction.customClick(
             { _, _ ->
@@ -30,7 +30,10 @@ private fun Player.exitAction(): ActionButton {
 }
 
 private fun Player.createWorldEditPropertyDialog(recordWorld: RecordWorld): Dialog {
-    val base = DialogBase.builder(Component.text("Edit World")).build()
+    val base = DialogBase.builder(Component.text("Edit World"))
+        .pause(false)
+        .afterAction(DialogBase.DialogAfterAction.NONE)
+        .build()
     val set = RegistrySet.valueSet(
         RegistryKey.DIALOG, listOf(
             createWorldUpdateDialog(recordWorld),
@@ -48,7 +51,7 @@ private fun Player.createWorldEditPropertyDialog(recordWorld: RecordWorld): Dial
     }
 }
 
-fun Player.showWorldEditPropertyDialog(recordWorld: RecordWorld) {
-    closeInventory()
+fun Player.showWorldEditPropertyDialog(recordWorld: RecordWorld, closeInventoryFirst: Boolean = true) {
+    if (closeInventoryFirst) closeInventory()
     showDialog(createWorldEditPropertyDialog(recordWorld))
 }

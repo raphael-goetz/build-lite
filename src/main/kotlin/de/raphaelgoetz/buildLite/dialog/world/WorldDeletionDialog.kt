@@ -26,7 +26,7 @@ private fun Player.yesAction(record: RecordWorld): ActionButton {
 private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
         Component.text("Cancel"), Component.text("Cancel and return to the previous menu"), 100, DialogAction.customClick(
-            { _, _ -> showWorldEditPropertyDialog(recordWorld) },
+            { _, _ -> showWorldEditPropertyDialog(recordWorld, false) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )

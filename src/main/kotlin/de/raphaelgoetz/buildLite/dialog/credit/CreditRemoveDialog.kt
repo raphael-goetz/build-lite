@@ -33,7 +33,7 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
 private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
         Component.text("Cancel"), Component.text("Return without removing any credits."), 100, DialogAction.customClick(
-            { _, _ -> showWorldEditPropertyDialog(recordWorld) },
+            { _, _ -> showWorldEditPropertyDialog(recordWorld, false) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -51,4 +51,3 @@ fun Player.createCreditRemoveDialog(recordWorld: RecordWorld): Dialog {
         builder.type(type)
     }
 }
-

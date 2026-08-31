@@ -43,7 +43,7 @@ private fun Player.yesAction(): ActionButton {
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
         Component.text("Discard"), Component.text("Cancel and return to the home menu"), 100, DialogAction.customClick(
-            { _, _ -> showHomeDialog() },
+            { _, _ -> showHomeDialog(false) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -93,8 +93,8 @@ private fun Player.createWorldCreationDialog(): Dialog {
     }
 }
 
-fun Player.showWorldCreationDialog() {
-    closeInventory()
+fun Player.showWorldCreationDialog(closeInventoryFirst: Boolean = true) {
+    if (closeInventoryFirst) closeInventory()
     showDialog(createWorldCreationDialog())
 }
 

@@ -4,6 +4,7 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.java.javaUUID
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -82,15 +83,30 @@ private fun addBuildTimeSeconds(playerUuid: UUID, worldUuid: UUID, day: LocalDat
 }
 
 /**
- * Seconds accrued per world for [playerUuid]. [since] filters to buckets on
- * or after that date; pass null for an all-time total.
+ * Seconds accrued per world for [playerUuid]. [since] and [until] form an
+ * inclusive date range; either bound may be omitted.
  */
-fun getSqlBuildTimeByWorld(playerUuid: UUID, since: LocalDate? = null): Map<UUID, Long> = transaction {
-    val rows = if (since == null) {
-        SqlPlayerBuildTime.selectAll().where { SqlPlayerBuildTime.playerUUID eq playerUuid }
-    } else {
-        SqlPlayerBuildTime.selectAll().where {
-            (SqlPlayerBuildTime.playerUUID eq playerUuid) and (SqlPlayerBuildTime.day greaterEq since.toString())
+fun getSqlBuildTimeByWorld(
+    playerUuid: UUID,
+    since: LocalDate? = null,
+    until: LocalDate? = null,
+): Map<UUID, Long> = transaction {
+    val rows = when {
+        since != null && until != null -> SqlPlayerBuildTime.selectAll().where {
+            (SqlPlayerBuildTime.playerUUID eq playerUuid) and
+                (SqlPlayerBuildTime.day greaterEq since.toString()) and
+                (SqlPlayerBuildTime.day lessEq until.toString())
+        }
+        since != null -> SqlPlayerBuildTime.selectAll().where {
+            (SqlPlayerBuildTime.playerUUID eq playerUuid) and
+                (SqlPlayerBuildTime.day greaterEq since.toString())
+        }
+        until != null -> SqlPlayerBuildTime.selectAll().where {
+            (SqlPlayerBuildTime.playerUUID eq playerUuid) and
+                (SqlPlayerBuildTime.day lessEq until.toString())
+        }
+        else -> SqlPlayerBuildTime.selectAll().where {
+            SqlPlayerBuildTime.playerUUID eq playerUuid
         }
     }
 

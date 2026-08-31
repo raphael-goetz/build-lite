@@ -19,15 +19,7 @@ object CacheReview {
     fun append(world: World, recordPlayerReview: RecordPlayerReview) {
         val review = Review(recordPlayerReview, world)
         review.spawn()
-
-        for (player in PlayerCache.all()) {
-            if (!player.recordPlayer.reviewMode) {
-                val bukkitPlayer = Bukkit.getPlayer(player.playerUUID)
-                bukkitPlayer?.let {
-                    review.hideFor(it)
-                }
-            }
-        }
+        applyVisibility(review)
 
         val list = cache[world]
         if (list != null) {
@@ -42,6 +34,7 @@ object CacheReview {
         cache.forEach { (_, reviews) ->
             reviews.forEach { review ->
                 if (review.recordPlayerReview.id == recordPlayerReview.id) {
+                    ensureSpawned(review)
                     review.refresh()
                     return@forEach
                 }
@@ -76,12 +69,7 @@ object CacheReview {
             val r = Review(review, world)
             r.spawn()
             reviewEntities.add(r)
-
-            for (player in PlayerCache.all()) {
-                if (player.recordPlayer.reviewMode) continue
-                val bukkitPlayer = Bukkit.getPlayer(player.playerUUID) ?: continue
-                r.hideFor(bukkitPlayer)
-            }
+            applyVisibility(r)
         }
 
         cache[world] = reviewEntities
@@ -99,13 +87,27 @@ object CacheReview {
 
     fun showAll(player: Player) {
         for (entity in getAll()) {
+            ensureSpawned(entity)
             entity.showFor(player)
         }
     }
 
     fun hideAll(player: Player) {
         for (entity in getAll()) {
+            ensureSpawned(entity)
             entity.hideFor(player)
+        }
+    }
+
+    private fun ensureSpawned(review: Review) {
+        if (review.ensureSpawned()) applyVisibility(review)
+    }
+
+    private fun applyVisibility(review: Review) {
+        for (player in PlayerCache.all()) {
+            if (player.recordPlayer.reviewMode) continue
+            val bukkitPlayer = Bukkit.getPlayer(player.playerUUID) ?: continue
+            review.hideFor(bukkitPlayer)
         }
     }
 

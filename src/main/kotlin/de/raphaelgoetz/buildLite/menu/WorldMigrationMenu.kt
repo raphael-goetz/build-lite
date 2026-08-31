@@ -17,12 +17,12 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 
 fun Player.openWorldMigrationMenu() {
-    closeDialog()
     val clicks = WorldMigrator
         .detect()
         .sortedBy { it }
         .map { createWorldMigrationItem(it) }
 
+    closeDialog()
     openTransPageInventory(
         key = "menu.world_migration.title",
         fallback = "Migrate Worlds",

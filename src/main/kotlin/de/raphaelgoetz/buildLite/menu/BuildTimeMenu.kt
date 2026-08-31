@@ -14,7 +14,6 @@ import de.raphaelgoetz.buildLite.item.createInactivePageRightItem
 import de.raphaelgoetz.buildLite.item.createPageLeftItem
 import de.raphaelgoetz.buildLite.item.createPageRightItem
 import de.raphaelgoetz.buildLite.item.createWorldBuildTimeDisplayItem
-import de.raphaelgoetz.buildLite.registry.BuildTimeInterval
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.registry.getItemWithURL
 import de.raphaelgoetz.buildLite.sql.RecordWorld
@@ -23,34 +22,35 @@ import de.raphaelgoetz.buildLite.sql.getSqlBuildTimeByWorld
 import de.raphaelgoetz.buildLite.sql.selectUniquePlayerUuids
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import java.time.LocalDate
 import java.util.UUID
 
-fun Player.openBuildTimeMenu(targetUuid: UUID, targetName: String, interval: BuildTimeInterval) {
-    closeDialog()
-
+fun Player.openBuildTimeMenu(targetUuid: UUID, targetName: String, startDate: LocalDate, endDate: LocalDate) {
     doNowAsync {
-        val timeByWorld = getSqlBuildTimeByWorld(targetUuid, interval.cutoff())
+        val timeByWorld = getSqlBuildTimeByWorld(targetUuid, startDate, endDate)
         val worlds = getAllSqlWorlds().filter { timeByWorld.containsKey(it.uniqueId) }
 
         doNow {
-            if (isOnline) renderBuildTimeMenu(targetName, interval, worlds, timeByWorld)
+            if (isOnline) renderBuildTimeMenu(targetName, startDate, endDate, worlds, timeByWorld)
         }
     }
 }
 
 private fun Player.renderBuildTimeMenu(
     targetName: String,
-    interval: BuildTimeInterval,
+    startDate: LocalDate,
+    endDate: LocalDate,
     worlds: List<RecordWorld>,
     timeByWorld: Map<UUID, Long>,
 ) {
+    closeDialog()
     val items = worlds
         .sortedByDescending { timeByWorld[it.uniqueId] ?: 0L }
         .map { createWorldBuildTimeDisplayItem(it, timeByWorld[it.uniqueId] ?: 0L) }
 
     openTransPageInventory(
         key = "menu.build_time.title",
-        fallback = "$targetName - Build Time (${interval.text})",
+        fallback = "$targetName - Build Time ($startDate - $endDate)",
         rows = InventoryRows.ROW6,
         list = items,
         from = InventorySlots.SLOT1ROW1,
@@ -73,9 +73,6 @@ private fun Player.renderBuildTimeMenu(
 }
 
 fun Player.openBuildTimePlayerPickerMenu() {
-    closeDialog()
-    sendActionBar(net.kyori.adventure.text.Component.text("Loading players…"))
-
     doNowAsync {
         val playerUuids = selectUniquePlayerUuids()
 
@@ -87,6 +84,7 @@ fun Player.openBuildTimePlayerPickerMenu() {
 }
 
 private fun Player.renderBuildTimePlayerPickerMenu(playerUuids: List<UUID>) {
+    closeDialog()
     val clicks = playerUuids
         .map { PlayerProfileCache.getOrFetch(it) }
         .sortedBy { it.playerName.lowercase() }

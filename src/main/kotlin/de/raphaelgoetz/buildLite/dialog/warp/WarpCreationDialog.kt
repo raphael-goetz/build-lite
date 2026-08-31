@@ -35,7 +35,7 @@ private fun Player.yesAction(): ActionButton {
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
         Component.text("Cancel"), Component.text("Return to the home menu without creating a warp"), 100, DialogAction.customClick(
-            { _, _ -> showHomeDialog() },
+            { _, _ -> showHomeDialog(false) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -55,7 +55,7 @@ private fun Player.createWarpCreationDialog(): Dialog {
     }
 }
 
-fun Player.showWarpCreationDialog() {
-    closeInventory()
+fun Player.showWarpCreationDialog(closeInventoryFirst: Boolean = true) {
+    if (closeInventoryFirst) closeInventory()
     showDialog(createWarpCreationDialog())
 }

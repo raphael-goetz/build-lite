@@ -128,12 +128,12 @@ fun Player.actionWorldFavoriteToggle(recordWorld: RecordWorld) {
     val isFavorite = hasSqlPlayerFavorite(recordWorld.uniqueId)
     if (isFavorite) {
         deleteSqlPlayerFavorite(recordWorld.uniqueId)
-        sendMessage(adventureText("$PREFIX World '${world.name}' removed from favorites.") {
+        sendMessage(adventureText("$PREFIX World '${recordWorld.name}' removed from favorites.") {
             color = Colorization.LIME
         })
     } else {
         createSqlPlayerFavorite(recordWorld.uniqueId)
-        sendMessage(adventureText("$PREFIX World '${world.name}' added to favorites.") {
+        sendMessage(adventureText("$PREFIX World '${recordWorld.name}' added to favorites.") {
             color = Colorization.LIME
         })
     }

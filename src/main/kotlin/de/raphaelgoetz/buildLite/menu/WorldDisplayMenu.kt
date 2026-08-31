@@ -23,9 +23,7 @@ import org.bukkit.entity.Player
 import java.util.UUID
 
 fun Player.openWorldDisplayMenu(folder: WorldFolder) {
-    closeDialog()
     val playerUuid = uniqueId
-    sendActionBar(net.kyori.adventure.text.Component.text("Loading worlds…"))
 
     doNowAsync {
         val creditsByWorld = getSqlPlayerCreditsFor(folder.worlds.map { it.uniqueId })
@@ -54,6 +52,7 @@ private fun Player.renderWorldDisplayMenu(
     favoriteUuids: Set<UUID>,
     buildTimeByWorld: Map<UUID, Long>,
 ) {
+    closeDialog()
     val worlds = folder.worlds
         .sortedBy { it.name }
         .map {

@@ -7,15 +7,10 @@ import de.raphaelgoetz.astralis.text.components.RenderMode
 import de.raphaelgoetz.astralis.text.components.adventureText
 import de.raphaelgoetz.astralis.ui.builder.SmartClick
 import de.raphaelgoetz.astralis.ux.color.Colorization
-import de.raphaelgoetz.buildLite.action.actionWorldFavoriteToggle
 import de.raphaelgoetz.buildLite.cache.PlayerProfileCache
-import de.raphaelgoetz.buildLite.dialog.world.showWorldActionDialog
-import de.raphaelgoetz.buildLite.dialog.world.showWorldEditPropertyDialog
+import de.raphaelgoetz.buildLite.dialog.world.showWorldDetailsDialog
 import de.raphaelgoetz.buildLite.formatting.capitalizeFirst
 import de.raphaelgoetz.buildLite.formatting.formatDuration
-import de.raphaelgoetz.buildLite.menu.openReviewMenu
-import de.raphaelgoetz.buildLite.menu.openWarpMenu
-import de.raphaelgoetz.buildLite.menu.openWorldFolderMenu
 import de.raphaelgoetz.buildLite.player.createPlayerHead
 import de.raphaelgoetz.buildLite.registry.DisplayURL
 import de.raphaelgoetz.buildLite.sql.RecordPlayerCredit
@@ -28,7 +23,6 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.event.inventory.ClickType
 import org.bukkit.inventory.meta.SkullMeta
 import java.net.URI
 import java.util.*
@@ -60,27 +54,6 @@ fun Player.createWorldDisplayItem(
     return SmartClick(item) { click ->
         click.isCancelled = true
 
-        if (click.click == ClickType.MIDDLE) {
-            openReviewMenu(recordWorld.uniqueId)
-            return@SmartClick
-        }
-
-        if (click.click == ClickType.DROP) {
-            showWorldActionDialog(recordWorld)
-            return@SmartClick
-        }
-
-        if (click.isShiftClick && click.isLeftClick) {
-            openWarpMenu(recordWorld.uniqueId)
-            return@SmartClick
-        }
-
-        if (click.isShiftClick && click.isRightClick) {
-            actionWorldFavoriteToggle(recordWorld)
-            openWorldFolderMenu()
-            return@SmartClick
-        }
-
         if (click.isLeftClick) {
             closeInventory()
             WorldLoader.lazyTeleport(recordWorld.loadableSpawn, recordWorld.generator, this)
@@ -88,7 +61,7 @@ fun Player.createWorldDisplayItem(
         }
 
         if (click.isRightClick) {
-            showWorldEditPropertyDialog(recordWorld)
+            showWorldDetailsDialog(recordWorld, isFavorite, buildTimeSeconds)
             return@SmartClick
         }
     }
@@ -135,13 +108,7 @@ private fun getDescription(
 
     val lastSection = mutableListOf(
         "Left-Click > Join World".gray(),
-        "Right-Click > Manage/Delete Properties".gray(),
-        "".gray(),
-        "Q / Drop > Open World Quick Actions".gray(),
-        "Middle-Click > See World Reviews".gray(),
-        "".gray(),
-        "Shift + Left-Click > Open World Warps".gray(),
-        if (isFavorite) "Shift + Right-Click > Unpin World".gray() else "Shift + Right-Click > Pin World".gray(),
+        "Right-Click > World Details".gray(),
     )
 
     val result = firstSection + middleSection + lastSection

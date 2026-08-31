@@ -7,6 +7,7 @@ import de.raphaelgoetz.buildLite.command.registerCommands
 import de.raphaelgoetz.buildLite.config.PluginConfig
 import de.raphaelgoetz.buildLite.listener.registerListener
 import de.raphaelgoetz.buildLite.server.FileServer
+import de.raphaelgoetz.buildLite.scoreboard.BuildScoreboard
 import de.raphaelgoetz.buildLite.sql.SqlPlayer
 import de.raphaelgoetz.buildLite.sql.SqlPlayerBuildTime
 import de.raphaelgoetz.buildLite.sql.SqlPlayerCredit
@@ -102,6 +103,7 @@ class BuildLite : Astralis() {
 
         PlayerProfileCache.init()
         BuildTimeTracker.start(pluginConfig.buildTimeAfkThresholdSeconds, pluginConfig.buildTimeTickIntervalSeconds)
+        BuildScoreboard.start()
 
         registerListener()
         registerCommands()
@@ -109,6 +111,7 @@ class BuildLite : Astralis() {
 
     override fun disable() {
         BuildTimeTracker.stop()
+        BuildScoreboard.stop()
         server?.stop()
 
         //For graceful shutdown!!!

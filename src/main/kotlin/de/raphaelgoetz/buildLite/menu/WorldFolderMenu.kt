@@ -28,9 +28,7 @@ import java.util.UUID
 import org.bukkit.entity.Player
 
 fun Player.openWorldFolderMenu() {
-    closeDialog()
     val playerUuid = uniqueId
-    sendActionBar(net.kyori.adventure.text.Component.text("Loading worlds…"))
 
     doNowAsync {
         // All DB reads happen here, off the main thread. Item/inventory
@@ -62,6 +60,7 @@ private fun Player.renderWorldFolderMenu(
     favoriteUuids: Set<UUID>,
     buildTimeByWorld: Map<UUID, Long>,
 ) {
+    closeDialog()
     val favorites = favoriteWorlds
         .sortedBy { it.name }
         .map {

@@ -33,7 +33,7 @@ private fun Player.yesAction(): ActionButton {
 private fun Player.noAction(): ActionButton {
     return ActionButton.create(
         Component.text("Discard"), Component.text("Discard your review and return home"), 100, DialogAction.customClick(
-            { _, _ -> showHomeDialog() },
+            { _, _ -> showHomeDialog(false) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )
@@ -60,7 +60,7 @@ fun Player.createReviewCreationDialog(): Dialog {
     }
 }
 
-fun Player.showReviewCreationDialog() {
-    closeInventory()
+fun Player.showReviewCreationDialog(closeInventoryFirst: Boolean = true) {
+    if (closeInventoryFirst) closeInventory()
     showDialog(createReviewCreationDialog())
 }

@@ -18,11 +18,11 @@ import org.bukkit.entity.Player
 import java.util.UUID
 
 fun Player.openReviewMenu(worldUUID: UUID) {
-    closeDialog()
     val clicks = getSqlPlayerReviews(worldUUID).map {
         createReviewDisplayItem(it)
     }
 
+    closeDialog()
     openTransPageInventory(
         key = "",
         fallback = "Reviews",

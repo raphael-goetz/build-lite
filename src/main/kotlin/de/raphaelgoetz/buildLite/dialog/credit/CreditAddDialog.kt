@@ -33,7 +33,7 @@ private fun Player.yesAction(recordWorld: RecordWorld): ActionButton {
 private fun Player.noAction(recordWorld: RecordWorld): ActionButton {
     return ActionButton.create(
         Component.text("Discard"), Component.text("Go back without saving changes."), 100, DialogAction.customClick(
-            { _, _ -> showWorldEditPropertyDialog(recordWorld) },
+            { _, _ -> showWorldEditPropertyDialog(recordWorld, false) },
             ClickCallback.Options.builder().uses(1).lifetime(ClickCallback.DEFAULT_LIFETIME).build()
         )
     )

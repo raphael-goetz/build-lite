@@ -28,7 +28,6 @@ import org.bukkit.inventory.meta.BannerMeta
 
 fun Player.openBannerCreationMenu() {
     val menu = BannerCreationMenu()
-    closeDialog()
     menu.openBannerCreationMenu(this)
 }
 
@@ -93,6 +92,7 @@ private class BannerCreationMenu() {
             }
         }
 
+        player.closeDialog()
         player.openTransPageInventory("gui.banner.base.title", "Select a base Banner", InventoryRows.ROW6, baseBanners) {
             val close = player.getItemWithURL(
                 Material.BARRIER,

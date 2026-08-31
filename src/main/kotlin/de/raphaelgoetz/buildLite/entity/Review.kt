@@ -29,12 +29,15 @@ data class Review(
     var textDisplay: TextDisplay? = null
 
     fun spawn(): Review {
+        if (textDisplay?.isValid == true) return this
 
-        location.y += 1
-        location.yaw = 0f
-        location.pitch = 0f
+        val spawnLocation = location.clone().apply {
+            y += 1
+            yaw = 0f
+            pitch = 0f
+        }
 
-        val entity = world.spawnEntity(location, EntityType.TEXT_DISPLAY)
+        val entity = world.spawnEntity(spawnLocation, EntityType.TEXT_DISPLAY)
         if (entity is TextDisplay) {
             // Without this, Minecraft's own periodic autosave can write this
             // entity to the world's region files independently of the plugin's
@@ -52,8 +55,23 @@ data class Review(
         return this
     }
 
+    /**
+     * Review displays are derived from the database and deliberately not saved
+     * into the world. Recreate the display if it was removed by a command or
+     * another plugin while the world remained loaded.
+     *
+     * @return true when a replacement entity was spawned.
+     */
+    fun ensureSpawned(): Boolean {
+        if (textDisplay?.isValid == true) return false
+        textDisplay = null
+        spawn()
+        return textDisplay?.isValid == true
+    }
+
     fun destroy() {
         textDisplay?.remove()
+        textDisplay = null
     }
 
     fun showFor(player: Player) {

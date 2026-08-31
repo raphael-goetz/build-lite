@@ -46,6 +46,64 @@ class PlayerBuildTimeTest {
     }
 
     @Test
+    fun `getSqlBuildTimeByWorld includes both date range boundaries`() {
+        val player = UUID.randomUUID()
+        val world = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        addSqlBuildTimeSeconds(player, world, today.minusDays(2), 10)
+        addSqlBuildTimeSeconds(player, world, today.minusDays(1), 20)
+        addSqlBuildTimeSeconds(player, world, today, 30)
+        addSqlBuildTimeSeconds(player, world, today.plusDays(1), 40)
+
+        val ranged = getSqlBuildTimeByWorld(
+            player,
+            since = today.minusDays(1),
+            until = today,
+        )
+
+        assertEquals(50L, ranged[world])
+    }
+
+    @Test
+    fun `equal date boundaries select only that day`() {
+        val player = UUID.randomUUID()
+        val world = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        addSqlBuildTimeSeconds(player, world, today.minusDays(1), 10)
+        addSqlBuildTimeSeconds(player, world, today, 20)
+        addSqlBuildTimeSeconds(player, world, today.plusDays(1), 30)
+
+        assertEquals(20L, getSqlBuildTimeByWorld(player, since = today, until = today)[world])
+    }
+
+    @Test
+    fun `upper date boundary excludes later buckets`() {
+        val player = UUID.randomUUID()
+        val world = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        addSqlBuildTimeSeconds(player, world, today.minusDays(1), 10)
+        addSqlBuildTimeSeconds(player, world, today, 20)
+        addSqlBuildTimeSeconds(player, world, today.plusDays(1), 30)
+
+        assertEquals(30L, getSqlBuildTimeByWorld(player, until = today)[world])
+    }
+
+    @Test
+    fun `date range returns empty when no buckets fall inside it`() {
+        val player = UUID.randomUUID()
+        val world = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        addSqlBuildTimeSeconds(player, world, today.minusDays(10), 20)
+        addSqlBuildTimeSeconds(player, world, today.plusDays(10), 30)
+
+        assertTrue(getSqlBuildTimeByWorld(player, since = today.minusDays(2), until = today).isEmpty())
+    }
+
+    @Test
     fun `getSqlBuildTimeByWorld groups separate worlds independently`() {
         val player = UUID.randomUUID()
         val worldOne = UUID.randomUUID()
