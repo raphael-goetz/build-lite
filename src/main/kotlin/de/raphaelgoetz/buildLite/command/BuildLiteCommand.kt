@@ -1,9 +1,11 @@
 package de.raphaelgoetz.buildLite.command
 
+import com.mojang.brigadier.arguments.IntegerArgumentType
 import de.raphaelgoetz.astralis.command.AstralisCommand
 import de.raphaelgoetz.astralis.command.registerCommand
 import de.raphaelgoetz.astralis.schedule.doNow
 import de.raphaelgoetz.astralis.schedule.doNowAsync
+import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.dialog.buildtime.showBuildTimeIntervalDialog
 import de.raphaelgoetz.buildLite.dialog.home.showCreateHubDialog
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
@@ -25,6 +27,7 @@ import de.raphaelgoetz.buildLite.scoreboard.BuildScoreboard
 import de.raphaelgoetz.buildLite.sql.getSqlBuildTimeByWorld
 import de.raphaelgoetz.buildLite.sql.getSqlPlayerFavoriteWorldUuids
 import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
+import de.raphaelgoetz.buildLite.world.shareCurrentWorld
 import io.papermc.paper.command.brigadier.Commands
 import org.bukkit.entity.Player
 
@@ -41,6 +44,19 @@ fun registerBuildLiteCommand() {
                 openReviewMenu(worldUuid)
             }
         })
+        .then(
+            Commands.literal("share")
+                .requires { it.hasBuildLitePermission("build-lite.world.share") }
+                .executes { context ->
+                    context.playerExec { shareCurrentWorld(buildLiteInstance().pluginConfig.shareDefaultTtlMinutes) }
+                }
+                .then(
+                    Commands.argument("ttlMinutes", IntegerArgumentType.integer(1))
+                        .executes { context ->
+                            context.playerExec { shareCurrentWorld(IntegerArgumentType.getInteger(context, "ttlMinutes")) }
+                        }
+                )
+        )
         .then(
             Commands.literal("time")
                 .executes { context -> context.playerExec { showBuildTimeIntervalDialog() } }

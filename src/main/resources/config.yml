@@ -14,3 +14,10 @@ sql:
 build-time:
   afkThresholdSeconds: 180
   tickIntervalSeconds: 20
+# World sharing is disabled until all four fields below are filled in.
+r2:
+  accountId: ""
+  accessKeyId: ""
+  secretAccessKey: ""
+  bucket: ""
+  defaultTtlMinutes: 30

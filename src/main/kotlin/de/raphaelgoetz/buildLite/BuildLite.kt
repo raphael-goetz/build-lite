@@ -15,6 +15,8 @@ import de.raphaelgoetz.buildLite.sql.SqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.SqlPlayerReview
 import de.raphaelgoetz.buildLite.sql.SqlPlayerWarp
 import de.raphaelgoetz.buildLite.sql.SqlWorld
+import de.raphaelgoetz.buildLite.sql.SqlWorldUpload
+import de.raphaelgoetz.buildLite.world.ShareCleanupTask
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
 import com.zaxxer.hikari.HikariConfig
@@ -43,6 +45,9 @@ class BuildLite : Astralis() {
     lateinit var spawnLocation: Location
         private set
 
+    lateinit var pluginConfig: PluginConfig
+        private set
+
     override fun enable() {
         saveDefaultConfig()
 
@@ -59,7 +64,13 @@ class BuildLite : Astralis() {
             config.getDouble("location.pitch", 0.0).toFloat(),
             config.getLong("build-time.afkThresholdSeconds", 180),
             config.getLong("build-time.tickIntervalSeconds", 20),
+            config.getString("r2.accountId", "")!!,
+            config.getString("r2.accessKeyId", "")!!,
+            config.getString("r2.secretAccessKey", "")!!,
+            config.getString("r2.bucket", "")!!,
+            config.getInt("r2.defaultTtlMinutes", 30),
         )
+        this.pluginConfig = pluginConfig
 
         // Database.connect(url, driver) opens a brand new JDBC connection for every
         // transaction{} block and closes it afterward. A pooled/persistent connection
@@ -83,7 +94,8 @@ class BuildLite : Astralis() {
 
         transaction {
             SchemaUtils.create(
-                SqlPlayer, SqlPlayerBuildTime, SqlPlayerCredit, SqlPlayerFavorite, SqlPlayerReview, SqlPlayerWarp, SqlWorld
+                SqlPlayer, SqlPlayerBuildTime, SqlPlayerCredit, SqlPlayerFavorite, SqlPlayerReview, SqlPlayerWarp, SqlWorld,
+                SqlWorldUpload,
             )
         }
 
@@ -104,6 +116,7 @@ class BuildLite : Astralis() {
         PlayerProfileCache.init()
         BuildTimeTracker.start(pluginConfig.buildTimeAfkThresholdSeconds, pluginConfig.buildTimeTickIntervalSeconds)
         BuildScoreboard.start()
+        ShareCleanupTask.start(pluginConfig)
 
         registerListener()
         registerCommands()
@@ -112,6 +125,7 @@ class BuildLite : Astralis() {
     override fun disable() {
         BuildTimeTracker.stop()
         BuildScoreboard.stop()
+        ShareCleanupTask.stop()
         server?.stop()
 
         //For graceful shutdown!!!
