@@ -26,7 +26,9 @@ private fun Player.createHomeDialog(): Dialog {
         createAction("My Activity", "View your tracked build time.") { _, _ ->
             showBuildTimeIntervalDialog(closeInventoryFirst = false)
         },
-        createAction("Settings", "Configure building and visibility settings.") { _, _ -> showSettingsDialog() },
+        createAction("Settings", "Configure building and visibility settings.") { _, _ ->
+            showSettingsDialog(returnToHome = true)
+        },
         createAction("Help", "Open the Build-Lite guide.", 200) { _, _ -> openHelpBook() },
     )
 

@@ -29,7 +29,7 @@ fun Player.openHelpBook() {
         ),
         page(
             "World Details",
-            "From World Details you can join, pin or unpin, browse world warps and reviews, view build time, use Quick Actions, or edit properties when permitted.",
+            "From World Details you can join, pin or unpin, browse warps and reviews, view build time, copy the UUID, create a release, set spawn, or open World Settings when permitted.",
         ),
         page(
             "Creating",
@@ -38,7 +38,7 @@ fun Player.openHelpBook() {
         ),
         page(
             "Building",
-            "Build Mode controls whether you may change blocks. Night Vision, review visibility, and fly speed are available under Settings.\n\n",
+            "Build Mode controls whether you may change blocks. Night Vision, review visibility, and fly speed are available under Settings. Press G (Quick Actions) to open Personal Preferences directly.\n\n",
             commandLink("Open Settings", "/bl settings"),
         ),
         page(

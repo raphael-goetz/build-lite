@@ -1,5 +1,8 @@
 package de.raphaelgoetz.buildLite.dialog.world
 
+import de.raphaelgoetz.astralis.text.components.adventureText
+import de.raphaelgoetz.buildLite.PREFIX
+import de.raphaelgoetz.buildLite.action.actionUpdateWorldSpawn
 import de.raphaelgoetz.buildLite.action.actionWorldFavoriteToggle
 import de.raphaelgoetz.buildLite.dialog.buildtime.showBuildTimeIntervalDialog
 import de.raphaelgoetz.buildLite.dialog.createAction
@@ -43,7 +46,7 @@ private fun Player.createWorldDetailsDialog(
             openReviewMenu(recordWorld.uniqueId)
         },
         createAction("Build Time", "View your build-time history.") { _, _ ->
-            showBuildTimeIntervalDialog(closeInventoryFirst = false)
+            showBuildTimeIntervalDialog(closeInventoryFirst = false, worldFilter = recordWorld)
         },
     )
 
@@ -55,8 +58,20 @@ private fun Player.createWorldDetailsDialog(
         })
     }
 
-    actions.add(createAction("Quick Actions…", "Open UUID, spawn, and release actions.") { _, _ ->
-        showWorldQuickActionsDialog(recordWorld, isFavorite, buildTimeSeconds)
+    actions.add(createAction("Copy UUID", "Copy this world's unique identifier.") { _, _ ->
+        sendMessage(adventureText("$PREFIX Click this message to copy the UUID for world ${recordWorld.name}.") {
+            onCopyClipboard(recordWorld.uniqueId.toString())
+        })
+    })
+
+    if (hasPermission("build-lite.world.update") || hasPermission("build-lite.*")) {
+        actions.add(createAction("Set World Spawn", "Set the world spawn to your current location.") { _, _ ->
+            actionUpdateWorldSpawn(recordWorld)
+        })
+    }
+
+    actions.add(createAction("Create Release", "Export this world and make it available for download.") { _, _ ->
+        WorldLoader.lazyExport(recordWorld)
     })
 
     if (
@@ -66,7 +81,7 @@ private fun Player.createWorldDetailsDialog(
         hasPermission("build-lite.credit.remove") ||
         hasPermission("build-lite.*")
     ) {
-        actions.add(createAction("Edit Properties…", "Edit metadata, credits, or delete this world.") { _, _ ->
+        actions.add(createAction("World Settings…", "Edit metadata, credits, or delete this world.") { _, _ ->
             showWorldEditPropertyDialog(recordWorld, false)
         })
     }

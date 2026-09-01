@@ -14,7 +14,19 @@ import de.raphaelgoetz.buildLite.cache.CacheReview
 import de.raphaelgoetz.buildLite.cache.PlayerActivityCache
 import de.raphaelgoetz.buildLite.cache.PlayerCache
 import de.raphaelgoetz.buildLite.cache.markActive
+import de.raphaelgoetz.buildLite.dialog.home.FIELD_FLY_SPEED_KEY
+import de.raphaelgoetz.buildLite.dialog.home.SETTINGS_ACTIONS
+import de.raphaelgoetz.buildLite.dialog.home.SETTINGS_BUILD_MODE_ACTION
+import de.raphaelgoetz.buildLite.dialog.home.SETTINGS_CLOSE_ACTION
+import de.raphaelgoetz.buildLite.dialog.home.SETTINGS_NIGHT_MODE_ACTION
+import de.raphaelgoetz.buildLite.dialog.home.SETTINGS_REVIEW_MODE_ACTION
+import de.raphaelgoetz.buildLite.dialog.home.SETTINGS_SIDEBAR_ACTION
+import de.raphaelgoetz.buildLite.dialog.home.applySettingsFlySpeed
 import de.raphaelgoetz.buildLite.dialog.home.showHomeDialog
+import de.raphaelgoetz.buildLite.dialog.home.toggleBuildModePreference
+import de.raphaelgoetz.buildLite.dialog.home.toggleBuildSidebarPreference
+import de.raphaelgoetz.buildLite.dialog.home.toggleNightModePreference
+import de.raphaelgoetz.buildLite.dialog.home.toggleReviewModePreference
 import de.raphaelgoetz.buildLite.player.hasWorldEnterPermission
 import de.raphaelgoetz.buildLite.buildLiteInstance
 import de.raphaelgoetz.buildLite.sql.toSqlWorldOrNull
@@ -22,6 +34,8 @@ import de.raphaelgoetz.buildLite.world.OVERWORLD_UUID
 import de.raphaelgoetz.buildLite.world.WorldLoader
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import io.papermc.paper.connection.PlayerGameConnection
+import io.papermc.paper.event.player.PlayerCustomClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.entity.Player
@@ -34,6 +48,23 @@ fun registerPlayerEvents() {
     listen<PlayerSwapHandItemsEvent> { event ->
         event.isCancelled = true
         event.player.showHomeDialog()
+    }
+
+    listen<PlayerCustomClickEvent> { event ->
+        val player = (event.commonConnection as? PlayerGameConnection)?.player ?: return@listen
+        if (event.identifier !in SETTINGS_ACTIONS) return@listen
+        player.applySettingsFlySpeed(event.dialogResponseView?.getFloat(FIELD_FLY_SPEED_KEY))
+        when (event.identifier) {
+            SETTINGS_BUILD_MODE_ACTION -> player.toggleBuildModePreference()
+            SETTINGS_NIGHT_MODE_ACTION -> player.toggleNightModePreference()
+            SETTINGS_REVIEW_MODE_ACTION -> player.toggleReviewModePreference()
+            SETTINGS_SIDEBAR_ACTION -> player.toggleBuildSidebarPreference()
+            SETTINGS_CLOSE_ACTION -> {
+                player.closeDialog()
+                return@listen
+            }
+            else -> return@listen
+        }
     }
 
     listen<PlayerJoinEvent> { event ->
@@ -72,11 +103,6 @@ fun registerPlayerEvents() {
             doNow {
                 if (!player.isOnline) return@doNow
 
-                when (cachedPlayer.recordPlayer.reviewMode) {
-                    true -> CacheReview.showAll(player)
-                    false -> CacheReview.hideAll(player)
-                }
-
                 // This will teleport the player to his last known location.
                 // Only if the match was found. Then the world is probably not existing anymore
                 if (location != null && isOverworld) {
@@ -85,6 +111,14 @@ fun registerPlayerEvents() {
                     WorldLoader.lazyTeleport(location, world.generator, player)
                 } else if (location == null) {
                     player.teleportAsync(buildLiteInstance().spawnLocation)
+                }
+
+                // lazyTeleport restores reviews for both already-loaded and
+                // newly-loaded worlds. Apply this player's preference only
+                // after those display entities exist.
+                when (cachedPlayer.recordPlayer.reviewMode) {
+                    true -> CacheReview.showAll(player)
+                    false -> CacheReview.hideAll(player)
                 }
             }
         }

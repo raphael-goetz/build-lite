@@ -34,6 +34,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.UUID
 
 object WorldLoader {
 
@@ -60,6 +61,7 @@ object WorldLoader {
         val record = getSqlWorld(loadableLocation.worldUuid)
 
         if (world != null) {
+            ensureReviewsLoaded(world, loadableLocation.worldUuid)
             val location = loadableLocation.toLocation(world)
             player.teleportAsync(location)
             player.sendText("$PREFIX You entered the world: ${record.name}") {
@@ -73,7 +75,7 @@ object WorldLoader {
                 return@listen
             }
 
-            CacheReview.loadWorld(event.world, getSqlPlayerReviews(loadableLocation.worldUuid))
+            ensureReviewsLoaded(event.world, loadableLocation.worldUuid)
             val world = event.world
             val location = loadableLocation.toLocation(world)
             player.teleportAsync(location)
@@ -87,6 +89,11 @@ object WorldLoader {
         doLater(5) {
             listener.unregister()
         }
+    }
+
+    private fun ensureReviewsLoaded(world: World, worldUuid: UUID) {
+        if (CacheReview.isWorldLoaded(world)) return
+        CacheReview.loadWorld(world, getSqlPlayerReviews(worldUuid))
     }
 
     fun lazyUnload(world: World) {

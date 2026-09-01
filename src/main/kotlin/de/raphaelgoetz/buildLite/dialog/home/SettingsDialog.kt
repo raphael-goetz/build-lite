@@ -17,13 +17,13 @@ import io.papermc.paper.registry.data.dialog.type.DialogType
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 
-private const val FIELD_FLY_SPEED_KEY = "settings_fly_speed"
+internal const val FIELD_FLY_SPEED_KEY = "settings_fly_speed"
 
-fun Player.showSettingsDialog() {
-    showDialog(createSettingsDialog())
+fun Player.showSettingsDialog(returnToHome: Boolean = false) {
+    showDialog(createSettingsDialog(returnToHome))
 }
 
-private fun Player.createSettingsDialog(): Dialog {
+private fun Player.createSettingsDialog(returnToHome: Boolean): Dialog {
     val record = PlayerCache.getOrInit(this).recordPlayer
     val speedInput = DialogInput.numberRange(
         FIELD_FLY_SPEED_KEY,
@@ -36,30 +36,36 @@ private fun Player.createSettingsDialog(): Dialog {
         0.1f,
     )
     val actions = listOf(
-        createPreferenceAction("Build Mode", record.buildMode) {
-            if (record.buildMode) actionDisableBuildMode() else actionEnableBuildMode()
+        createPreferenceAction("Build Mode", record.buildMode, returnToHome) {
+            toggleBuildModePreference()
         },
-        createPreferenceAction("Night Vision", record.nightMode) {
-            if (record.nightMode) actionDisableNightMode() else actionEnableNightMode()
+        createPreferenceAction("Night Vision", record.nightMode, returnToHome) {
+            toggleNightModePreference()
         },
-        createPreferenceAction("Review Visibility", record.reviewMode) {
-            if (record.reviewMode) actionDisableReviewMode() else actionEnableReviewMode()
+        createPreferenceAction("Review Visibility", record.reviewMode, returnToHome) {
+            toggleReviewModePreference()
         },
-        createPreferenceAction("Build Sidebar", BuildScoreboard.isEnabled(this)) {
-            BuildScoreboard.toggle(this)
+        createPreferenceAction("Build Sidebar", BuildScoreboard.isEnabled(this), returnToHome) {
+            toggleBuildSidebarPreference()
         },
     )
 
-    val back = createAction("Back", "Apply fly speed and return to the home menu.") { view, _ ->
+    val exitLabel = if (returnToHome) "Back" else "Close"
+    val exitTooltip = if (returnToHome) {
+        "Apply fly speed and return to the main menu."
+    } else {
+        "Apply fly speed and close settings."
+    }
+    val exit = createAction(exitLabel, exitTooltip) { view, _ ->
         applyFlySpeed(view.getFloat(FIELD_FLY_SPEED_KEY))
-        showHomeDialog(false)
+        if (returnToHome) showHomeDialog(false) else closeDialog()
     }
     val base = DialogBase.builder(Component.text("Personal Preferences"))
         .pause(false)
         .afterAction(DialogBase.DialogAfterAction.NONE)
         .inputs(listOf(speedInput))
         .build()
-    val type = DialogType.multiAction(actions, back, 2)
+    val type = DialogType.multiAction(actions, exit, 2)
 
     return Dialog.create { factory ->
         factory.empty().base(base).type(type)
@@ -69,16 +75,40 @@ private fun Player.createSettingsDialog(): Dialog {
 private fun Player.createPreferenceAction(
     label: String,
     enabled: Boolean,
+    returnToHome: Boolean,
     toggle: Player.() -> Unit,
 ): ActionButton {
     val state = if (enabled) "ON" else "OFF"
     return createAction("$label: $state", "Click to turn $label ${if (enabled) "off" else "on"}.") { view, _ ->
         applyFlySpeed(view.getFloat(FIELD_FLY_SPEED_KEY))
         toggle()
-        showSettingsDialog()
+        showSettingsDialog(returnToHome)
     }
 }
 
 private fun Player.applyFlySpeed(speed: Float?) {
     speed?.let { flySpeed = it }
+}
+
+internal fun Player.applySettingsFlySpeed(speed: Float?) {
+    applyFlySpeed(speed)
+}
+
+internal fun Player.toggleBuildModePreference() {
+    val record = PlayerCache.getOrInit(this).recordPlayer
+    if (record.buildMode) actionDisableBuildMode() else actionEnableBuildMode()
+}
+
+internal fun Player.toggleNightModePreference() {
+    val record = PlayerCache.getOrInit(this).recordPlayer
+    if (record.nightMode) actionDisableNightMode() else actionEnableNightMode()
+}
+
+internal fun Player.toggleReviewModePreference() {
+    val record = PlayerCache.getOrInit(this).recordPlayer
+    if (record.reviewMode) actionDisableReviewMode() else actionEnableReviewMode()
+}
+
+internal fun Player.toggleBuildSidebarPreference() {
+    BuildScoreboard.toggle(this)
 }

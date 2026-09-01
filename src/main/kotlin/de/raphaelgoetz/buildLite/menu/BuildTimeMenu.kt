@@ -25,13 +25,25 @@ import org.bukkit.entity.Player
 import java.time.LocalDate
 import java.util.UUID
 
-fun Player.openBuildTimeMenu(targetUuid: UUID, targetName: String, startDate: LocalDate, endDate: LocalDate) {
+fun Player.openBuildTimeMenu(
+    targetUuid: UUID,
+    targetName: String,
+    startDate: LocalDate,
+    endDate: LocalDate,
+    worldFilter: RecordWorld? = null,
+) {
     doNowAsync {
         val timeByWorld = getSqlBuildTimeByWorld(targetUuid, startDate, endDate)
-        val worlds = getAllSqlWorlds().filter { timeByWorld.containsKey(it.uniqueId) }
+        val worlds = if (worldFilter == null) {
+            getAllSqlWorlds().filter { timeByWorld.containsKey(it.uniqueId) }
+        } else {
+            listOf(worldFilter)
+        }
 
         doNow {
-            if (isOnline) renderBuildTimeMenu(targetName, startDate, endDate, worlds, timeByWorld)
+            if (isOnline) {
+                renderBuildTimeMenu(targetName, startDate, endDate, worldFilter, worlds, timeByWorld)
+            }
         }
     }
 }
@@ -40,6 +52,7 @@ private fun Player.renderBuildTimeMenu(
     targetName: String,
     startDate: LocalDate,
     endDate: LocalDate,
+    worldFilter: RecordWorld?,
     worlds: List<RecordWorld>,
     timeByWorld: Map<UUID, Long>,
 ) {
@@ -50,7 +63,7 @@ private fun Player.renderBuildTimeMenu(
 
     openTransPageInventory(
         key = "menu.build_time.title",
-        fallback = "$targetName - Build Time ($startDate - $endDate)",
+        fallback = "$targetName - ${worldFilter?.name ?: "All Worlds"} ($startDate - $endDate)",
         rows = InventoryRows.ROW6,
         list = items,
         from = InventorySlots.SLOT1ROW1,

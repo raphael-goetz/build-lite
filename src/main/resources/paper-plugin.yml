@@ -1,6 +1,7 @@
 name: build-lite
 version: '${version}'
 main: de.raphaelgoetz.buildLite.BuildLite
+bootstrapper: de.raphaelgoetz.buildLite.bootstrap.BuildLiteBootstrap
 api-version: '1.21'
 author: 'Konfuzius'
 website: 'https://raphael-goetz.de'

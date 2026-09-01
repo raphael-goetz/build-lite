@@ -16,6 +16,10 @@ object CacheReview {
         return cache.map { it.value }.flatten()
     }
 
+    fun isWorldLoaded(world: World): Boolean {
+        return cache.containsKey(world)
+    }
+
     fun append(world: World, recordPlayerReview: RecordPlayerReview) {
         val review = Review(recordPlayerReview, world)
         review.spawn()
