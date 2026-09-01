@@ -128,12 +128,7 @@ object WorldLoader {
         record.deleteSqlPlayerLocation()
         record.deleteSqlWorld()
 
-        val folders = Bukkit.getWorldContainer().listFiles() ?: return
-
-        for (folder in folders) {
-            if (folder.name != record.uniqueId.toString()) continue
-            folder.deleteFilesInsideFolder()
-        }
+        WorldStorage.folderFor(record.uniqueId.toString())?.deleteFilesInsideFolder()
     }
 
     fun lazyExport(record: RecordWorld) {
@@ -219,8 +214,7 @@ fun addFilesToTarGzSafe(root: File, source: File, tarOut: TarArchiveOutputStream
 }
 
 private fun exportWorldFolder(record: RecordWorld) {
-    val worldFolder = File(Bukkit.getWorldContainer(), record.uniqueId.toString())
-    if (!worldFolder.exists()) return
+    val worldFolder = WorldStorage.folderFor(record.uniqueId.toString()) ?: return
 
     // Ensure export folder exists
     val result = File(Bukkit.getPluginsFolder(), "build-lite/export/${record.uniqueId}.tar.gz")
