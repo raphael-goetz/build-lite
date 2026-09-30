@@ -8,12 +8,15 @@ import java.util.UUID
 
 object WorldMigrator {
 
+    /** Returns true only if the legacy folder was found, renamed, and the
+     * resulting world was created successfully. Callers must not persist a
+     * world record for a migration that returns false. */
     fun migrate(
         oldName: String,
         newUuid: UUID,
         generator: ChunkGenerator,
-    ) {
-        val folders = Bukkit.getWorldContainer().listFiles() ?: return
+    ): Boolean {
+        val folders = Bukkit.getWorldContainer().listFiles() ?: return false
 
         for (folder in folders) {
             if (folder.name != oldName) continue
@@ -28,11 +31,19 @@ object WorldMigrator {
             val newFolder = File(folder.parentFile, newUuid.toString())
             if (!folder.renameTo(newFolder)) {
                 Bukkit.getLogger().warning("Could not migrate world folder: ${folder.absolutePath} -> ${newFolder.absolutePath}")
-                return
+                return false
             }
 
-            WorldCreator.create(newUuid.toString(), generator)
+            return try {
+                WorldCreator.create(newUuid.toString(), generator)
+                true
+            } catch (ex: Exception) {
+                Bukkit.getLogger().warning("Could not create migrated world '$newUuid': ${ex.message}")
+                false
+            }
         }
+
+        return false
     }
 
     fun detect(): List<String> {

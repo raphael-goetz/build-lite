@@ -10,6 +10,7 @@ import de.raphaelgoetz.buildLite.sql.RecordWorld
 import de.raphaelgoetz.buildLite.sql.createSqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.createSqlWorld
 import de.raphaelgoetz.buildLite.sql.deleteSqlPlayerFavorite
+import de.raphaelgoetz.buildLite.sql.deleteSqlWorld
 import de.raphaelgoetz.buildLite.sql.hasSqlPlayerFavorite
 import de.raphaelgoetz.buildLite.sql.types.WorldGenerator
 import de.raphaelgoetz.buildLite.sql.types.WorldState
@@ -46,12 +47,14 @@ fun Player.actionWorldMigrate(
     val correctGroup = group.sanitiseGroupInput()
 
     val record = createSqlWorld(correctName, correctGroup, generator, state)
-    try {
-        WorldMigrator.migrate(migrateWorld, record.uniqueId, record.generator.toGenerator())
+    val success = WorldMigrator.migrate(migrateWorld, record.uniqueId, record.generator.toGenerator())
+
+    if (success) {
         sendMessage(adventureText("$PREFIX World '$migrateWorld' migrated to '${record.name}' (in group: '${record.group}')") {
             color = Colorization.LIME
         })
-    } catch (_: Exception) {
+    } else {
+        record.deleteSqlWorld()
         sendMessage(adventureText("$PREFIX Migration of world '$migrateWorld' failed.") {
             color = Colorization.RED
         })

@@ -37,11 +37,22 @@ import java.io.IOException
 
 object WorldLoader {
 
-    fun lazyLoad(loadableWorld: LoadableWorld, generator: WorldGenerator) {
-        if (Bukkit.getWorld(loadableWorld.uniqueId.toString()) != null) return
+    /** Returns false if the world failed to load/create, e.g. because Paper's
+     * on-disk world migration hit a conflict. Callers must not assume a
+     * [WorldLoadEvent] will follow when this returns false. */
+    fun lazyLoad(loadableWorld: LoadableWorld, generator: WorldGenerator): Boolean {
+        if (Bukkit.getWorld(loadableWorld.uniqueId.toString()) != null) return true
         val creator = WorldCreator(loadableWorld.uniqueId.toString())
         creator.generator(generator.toGenerator())
-        creator.createWorld()
+
+        return try {
+            creator.createWorld()
+            true
+        } catch (ex: Exception) {
+            Bukkit.getLogger()
+                .warning("Could not create/load world '${loadableWorld.uniqueId}': ${ex.message}")
+            false
+        }
     }
 
     /** For a [LoadableLocation] tagged with [OVERWORLD_UUID] -- the vanilla
@@ -82,7 +93,13 @@ object WorldLoader {
             }
         }
 
-        lazyLoad(LoadableWorld(loadableLocation.worldUuid), generator)
+        if (!lazyLoad(LoadableWorld(loadableLocation.worldUuid), generator)) {
+            listener.unregister()
+            player.sendText("$PREFIX Failed to load the world: ${record.name}") {
+                color = Colorization.RED
+            }
+            return
+        }
 
         doLater(5) {
             listener.unregister()
